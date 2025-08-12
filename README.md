@@ -22,6 +22,49 @@ Here are some essential resources to help you hit the ground running:
 - **[Flow Clients](https://developers.flow.com/tools/clients)** - There are clients available in multiple languages to interact with the Flow Blockchain.  You can use these clients to interact with your smart contracts, run transactions, and query data from the network.
 - **[Block Explorers](https://developers.flow.com/ecosystem/block-explorers)** - Block explorers are tools that allow you to explore on-chain data.  You can use them to view transactions, accounts, events, and other information.  [Flowser](https://flowser.dev/) is a powerful block explorer for local development on the Flow Emulator.
 
+## ▶️ Quick Start (Scheduled Callbacks Example)
+
+Follow this to run the demo that schedules a callback to increment the `Counter`.
+
+1) Ensure flow-cli 2.4.1
+
+```bash
+flow version
+# If older than 2.4.1, update first: https://developers.flow.com/tools/flow-cli/install
+```
+
+2) Install deps and start emulator
+
+```bash
+flow deps install
+flow emulator --scheduled-callbacks --block-time 1s
+```
+
+3) In a new terminal, deploy, init, schedule, verify
+
+```bash
+flow project deploy --network emulator
+
+flow transactions send cadence/transactions/InitCounterCallbackHandler.cdc \
+  --network emulator --signer emulator-account
+
+flow scripts execute cadence/scripts/GetCounter.cdc --network emulator
+
+flow transactions send cadence/transactions/ScheduleIncrementIn.cdc \
+  --network emulator --signer emulator-account \
+  --args-json '[
+    {"type":"UFix64","value":"2.0"},
+    {"type":"UInt8","value":"1"},
+    {"type":"UInt64","value":"1000"},
+    {"type":"Optional","value":null}
+  ]'
+
+# after ~3s
+flow scripts execute cadence/scripts/GetCounter.cdc --network emulator
+```
+
+For full details see `EXAMPLE.md`.
+
 ## 📦 Project Structure
 
 Your project has been set up with the following structure:
@@ -35,10 +78,13 @@ Inside the `cadence` folder you will find:
 
 - `/contracts` - This folder contains your Cadence contracts (these are deployed to the network and contain the business logic for your application)
   - `Counter.cdc`
+  - `CounterCallbackHandler.cdc`
 - `/scripts` - This folder contains your Cadence scripts (read-only operations)
   - `GetCounter.cdc`
 - `/transactions` - This folder contains your Cadence transactions (state-changing operations)
   - `IncrementCounter.cdc`
+  - `InitCounterCallbackHandler.cdc`
+  - `ScheduleIncrementIn.cdc`
 - `/tests` - This folder contains your Cadence tests (integration tests for your contracts, scripts, and transactions to verify they behave as expected)
   - `Counter_test.cdc`
 
@@ -55,52 +101,9 @@ Docs and rules live under `/.cursor/rules/scheduledcallbacks`:
 - `flip.md` – FLIP-330: Scheduled Callbacks
 - `workflows/` – Step-by-step: handler + scheduling flows
 
-## ▶️ Run the Existing Project
+Other folders/files:
 
-### Executing the `GetCounter` Script
-
-To run the `GetCounter` script, use the following command:
-
-```shell
-flow scripts execute cadence/scripts/GetCounter.cdc
-```
-
-### Sending the `IncrementCounter` Transaction
-
-To run the `IncrementCounter` transaction, use the following command:
-
-```shell
-flow transactions send cadence/transactions/IncrementCounter.cdc
-```
-
-To learn more about using the CLI, check out the [Flow CLI Documentation](https://developers.flow.com/tools/flow-cli).
-
-## ⚙️ Setup (Emulator with Scheduled Callbacks)
-
-String-based imports resolve when a target network is running and dependencies are deployed or aliased in `flow.json`.
-
-1. Install dependencies (once):
-
-```bash
-flow deps install
-```
-
-1. Start the emulator with Scheduled Callbacks enabled (terminal A):
-
-```bash
-flow emulator --scheduled-callbacks --block-time 1s
-```
-
-1. Deploy your local contracts (terminal B):
-
-```bash
-flow project deploy --network emulator
-```
-
-Notes:
-
-- The `FlowCallbackScheduler` and related core contracts are available in the emulator and mapped via `flow.json`. You do not deploy them yourself for emulator development. See `core-contracts/NOTES.md`.
-- Using `--block-time 1s` automatically seals blocks every second so scheduled callbacks execute without needing extra transactions. See `EXAMPLE.md` for the walkthrough.
+- `EXAMPLE.md` – Step-by-step walkthrough to run the scheduled callbacks demo
 
 ## 👨‍💻 Start Developing
 
@@ -146,7 +149,7 @@ You can import any dependencies as you would in a script file.
 
 - Imports (string imports): `import "FlowCallbackScheduler"`, `import "FlowToken"`, `import "FungibleToken"`
 - Required params when scheduling:
-  - `timestamp: UFix64` (0 means “as soon as possible” for low priority; otherwise must be in the future)
+  - `timestamp: UFix64` (must be in the future; on emulator prefer `getCurrentBlock().timestamp + smallDelta`)
   - `priority: UInt8` (0 = High, 1 = Medium, 2 = Low)
   - `executionEffort: UInt64` (minimum 10)
   - `handlerStoragePath: StoragePath`
@@ -206,22 +209,6 @@ transaction(
     }
 }
 ```
-
-Fee/limits highlights (emulator defaults):
-
-- Priority multipliers: High 10x, Medium 5x, Low 2x of base fee (governable)
-- Slot total execution effort: 35,000; Low-priority per-block limit: 5,000
-- Cancellation refunds 50% of deposited fees
-
-### 🧪 Creating a New Test
-
-To add a new test to your project you can use the following command:
-
-```shell
-flow generate test
-```
-
-This command will create a new test file.  Tests are used to verify that your contracts, scripts, and transactions are working as expected.
 
 ### 📦 Installing External Dependencies
 

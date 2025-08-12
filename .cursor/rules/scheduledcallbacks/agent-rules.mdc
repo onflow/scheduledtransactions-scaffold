@@ -12,6 +12,28 @@ The **FlowCallbackScheduler** contract is located in [`../../../core-contracts/F
 
 > Use it directly as context when generating callback-related code to ensure accurate type definitions and interface implementations.
 
+## Required flow-cli version
+
+Required: flow-cli 2.4.1 (scheduled callbacks support)
+
+- Verify:
+
+```bash
+flow version
+```
+
+- If your version is older than 2.4.1, update before proceeding:
+
+```bash
+# macOS (Homebrew)
+brew update && brew upgrade flow-cli
+
+# Or reinstall per docs
+# https://developers.flow.com/tools/flow-cli/install
+```
+
+Proceed only when `flow version` reports 2.4.1.
+
 ## Imports
 
 Always use string imports:

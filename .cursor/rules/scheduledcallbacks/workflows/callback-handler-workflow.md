@@ -129,7 +129,7 @@ transaction(
     storagePath: StoragePath,        // Storage location for the handler
     privatePath: PrivatePath         // Private capability path for scheduler access
 ) {
-    prepare(signer: auth(SaveValue, IssueStorageCapabilityController) &Account) {
+    prepare(signer: auth(Storage, Capabilities) &Account) {
         
         // Step 1: Validate storage path is available
         if signer.storage.check<@TestCallback.TestCallbackHandler>(from: storagePath) {
@@ -145,8 +145,8 @@ transaction(
         // Step 4: Create capability for scheduler access
          let handlerCap = signer.capabilities.storage.issue<auth(FlowCallbackScheduler.Execute) &{FlowCallbackScheduler.CallbackHandler}>(storagePath)
         
-        // Step 5: Publish capability for external access (optional)
-        signer.capabilities.publish(handlerCap, at: privatePath)
+        // Step 5 (optional): You may publish an additional capability if needed by your app
+        // signer.capabilities.publish(handlerCap, at: privatePath)
         
         log("TestCallbackHandler created with ID: ".concat(handlerID))
         log("Stored at: ".concat(storagePath.toString()))
@@ -220,7 +220,7 @@ setupCallbackHandler(
 
 ```cadence
 // Get handler capability for scheduling
-let handlerCap = account.capabilities.storage.issue<auth(FlowCallbackScheduler.mayExecuteCallback) &{FlowCallbackScheduler.CallbackHandler}>(/storage/TestCallbackHandler)
+let handlerCap = account.capabilities.storage.issue<auth(FlowCallbackScheduler.Execute) &{FlowCallbackScheduler.CallbackHandler}>(/storage/TestCallbackHandler)
 ```
 
 ### Preparing for Callback Scheduling

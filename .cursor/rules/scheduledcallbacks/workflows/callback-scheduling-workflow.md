@@ -10,7 +10,7 @@
 import "FlowCallbackScheduler"
 import "FlowToken"
 import "FungibleToken"
-import "TestCallback"  // Replace with actual handler contract
+// import "YourHandlerContract"  // Implementor of FlowCallbackScheduler.CallbackHandler
 ```
 
 ## Component Flow
@@ -27,14 +27,14 @@ import "TestCallback"  // Replace with actual handler contract
 
 ```cadence
 transaction(
-    timestamp: UFix64,              // Target execution timestamp (0 = as soon as possible)
+    timestamp: UFix64,              // Target execution timestamp (must be in the future)
     priority: UInt8,                // Priority level (0=High, 1=Medium, 2=Low)
     executionEffort: UInt64,        // Maximum computation effort (minimum 10)
     handlerStoragePath: StoragePath, // Storage path of the callback handler
     callbackData: AnyStruct?,       // Optional data to pass to callback (max 100 bytes)
     receiptStoragePath: StoragePath? // Optional storage path for callback receipt
 ) {
-    prepare(signer: auth(BorrowValue, SaveValue, IssueStorageCapabilityController) &Account) {
+    prepare(signer: auth(Storage, Capabilities) &Account) {
         
         // Step 1: Validate and convert priority
         let priorityEnum: FlowCallbackScheduler.Priority
@@ -49,11 +49,9 @@ transaction(
                 panic("Invalid priority value. Use 0=High, 1=Medium, 2=Low")
         }
         
-        // Step 2: Validate timestamp (must be in future or 0 for immediate)
+        // Step 2: Validate timestamp (must be strictly in the future)
         let currentTime = getCurrentBlock().timestamp
-        if timestamp != 0.0 && timestamp <= currentTime {
-            panic("Timestamp must be in the future or 0 for immediate execution")
-        }
+        assert(timestamp > currentTime, message: "Timestamp must be in the future")
         
         // Step 3: Estimate required fees
         let estimate = FlowCallbackScheduler.estimate(
@@ -62,9 +60,7 @@ transaction(
             priority: priorityEnum,
             executionEffort: executionEffort
         )
-        if estimate.flowFee == nil {
-            panic(estimate.error ?? "Could not estimate callback fee - invalid parameters")
-        }
+        assert(estimate.flowFee != nil, message: estimate.error ?? "Could not estimate callback fee")
         let requiredFee = estimate.flowFee!
         
         log("Estimated fee: ".concat(requiredFee.toString()).concat(" FLOW"))
@@ -86,10 +82,7 @@ transaction(
         
         // Step 5: Get callback handler capability
         let handlerCap = signer.capabilities.storage.issue<auth(FlowCallbackScheduler.Execute) &{FlowCallbackScheduler.CallbackHandler}>(handlerStoragePath)
-        
-        // Verify handler exists and is accessible
-        let handlerRef = handlerCap.borrow()
-            ?? panic("Could not borrow callback handler from ".concat(handlerStoragePath.toString()))
+        assert(handlerCap.check(), message: "Invalid handler capability at ".concat(handlerStoragePath.toString()))
         
         // Step 6: Schedule the callback
         let scheduledCallback = FlowCallbackScheduler.schedule(
@@ -110,7 +103,6 @@ transaction(
         
         // Step 8: Optionally save callback receipt for future reference
         if let storagePath = receiptStoragePath {
-            // Save the ScheduledCallback struct for later reference/cancellation
             signer.storage.save(scheduledCallback, to: storagePath)
             log("Callback receipt saved to: ".concat(storagePath.toString()))
         }
@@ -119,7 +111,7 @@ transaction(
     pre {
         executionEffort >= 10: "Execution effort must be at least 10"
         priority <= 2: "Priority must be 0 (High), 1 (Medium), or 2 (Low)"
-        // Note: callbackData size validation happens in the scheduler contract
+        // Note: data size validation happens inside the scheduler contract
     }
     
     post {
@@ -154,11 +146,12 @@ transaction(
 
 ## Configuration Examples
 
-### High Priority Immediate Execution
+### High Priority Scheduled Execution (near-immediate)
 
 ```cadence
+let nearNow = getCurrentBlock().timestamp + 1.0
 scheduleCallback(
-    timestamp: 0.0,                    // Execute as soon as possible
+    timestamp: nearNow,                // Near-immediate (must be in the future)
     priority: 0,                       // High priority (10x fee multiplier)
     executionEffort: 1000,             // Moderate computation effort
     handlerStoragePath: /storage/TestCallbackHandler,

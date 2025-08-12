@@ -1,5 +1,7 @@
 # Scheduled Callbacks Demo: Increment the Counter
+
 This example shows how to schedule a callback that increments the `Counter` in the near future and verify it on the Flow Emulator.
+
 ## Files used
 
 - `cadence/contracts/Counter.cdc`
