@@ -1,9 +1,22 @@
 {
   "contracts": {
+    "Counter": {
+      "source": "cadence/contracts/Counter.cdc",
+      "aliases": {
+        "testing": "0000000000000007"
+      }
+    },
+    "CounterCallbackHandler": {
+      "source": "cadence/contracts/CounterCallbackHandler.cdc",
+      "aliases": {
+        "testing": "0000000000000007"
+      }
+    },
     "FlowCallbackScheduler": {
       "source": "core-contracts/FlowCallbackScheduler.cdc",
       "aliases": {
-        "testing": "f8d6e0586b0a20c7"
+        "testing": "f8d6e0586b0a20c7",
+        "emulator": "f8d6e0586b0a20c7"
       }
     },
     "FlowFees": {
@@ -16,12 +29,6 @@
       "source": "core-contracts/FlowStorageFees.cdc",
       "aliases": {
         "testing": "f8d6e0586b0a20c7"
-      }
-    },
-    "Counter": {
-      "source": "cadence/contracts/Counter.cdc",
-      "aliases": {
-        "testing": "0000000000000007"
       }
     }
   },
@@ -107,7 +114,7 @@
   },
   "deployments": {
     "emulator": {
-      "emulator-account": ["Counter"]
+      "emulator-account": ["Counter", "CounterCallbackHandler"]
     }
   }
 }

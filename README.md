@@ -88,7 +88,7 @@ flow deps install
 1. Start the emulator with Scheduled Callbacks enabled (terminal A):
 
 ```bash
-flow emulator --scheduled-callbacks
+flow emulator --scheduled-callbacks --block-time 1s
 ```
 
 1. Deploy your local contracts (terminal B):
@@ -100,6 +100,7 @@ flow project deploy --network emulator
 Notes:
 
 - The `FlowCallbackScheduler` and related core contracts are available in the emulator and mapped via `flow.json`. You do not deploy them yourself for emulator development. See `core-contracts/NOTES.md`.
+- Using `--block-time 1s` automatically seals blocks every second so scheduled callbacks execute without needing extra transactions. See `EXAMPLE.md` for the walkthrough.
 
 ## 👨‍💻 Start Developing
 
@@ -263,7 +264,7 @@ Learn more about setting up deployment targets in the [Flow CLI documentation](h
 To deploy your project to the Flow Emulator, start the emulator with Scheduled Callbacks enabled:
 
 ```shell
-flow emulator --scheduled-callbacks
+flow emulator --scheduled-callbacks --block-time 1s
 ```
 
 To deploy your project, run the following command:
@@ -273,26 +274,6 @@ flow project deploy --network=emulator
 ```
 
 This command will start the Flow Emulator and deploy your project to it. You can now interact with your project using the Flow CLI or alternate [client](https://developers.flow.com/tools/clients).
-
-### Deploying to Flow Testnet
-
-To deploy your project to Flow Testnet you can use the following command:
-
-```shell
-flow project deploy --network=testnet
-```
-
-This command will deploy your project to Flow Testnet. You can now interact with your project on this network using the Flow CLI or any other Flow client.
-
-### Deploying to Flow Mainnet
-
-To deploy your project to Flow Mainnet you can use the following command:
-
-```shell
-flow project deploy --network=mainnet
-```
-
-This command will deploy your project to Flow Mainnet. You can now interact with your project using the Flow CLI or alternate [client](https://developers.flow.com/tools/clients).
 
 ## 📚 Other Resources
 
