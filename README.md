@@ -268,15 +268,6 @@ This command will start the Flow Emulator and deploy your project to it. You can
 - [Cadence Anti-Patterns](https://cadence-lang.org/docs/anti-patterns)
 - [Flow Core Contracts](https://developers.flow.com/build/core-contracts)
 
-### Local docs for Scheduled Callbacks
-
-- `/.cursor/rules/scheduledcallbacks/index.md`
-- `/.cursor/rules/scheduledcallbacks/agent-rules.mdc`
-- `/.cursor/rules/scheduledcallbacks/quick-checklist.md`
-- `/.cursor/rules/scheduledcallbacks/workflows/callback-handler-workflow.md`
-- `/.cursor/rules/scheduledcallbacks/workflows/callback-scheduling-workflow.md`
-- `/.cursor/rules/scheduledcallbacks/flip.md`
-
 ## 🤝 Community
 
 - [Flow Community Forum](https://forum.flow.com/)
