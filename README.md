@@ -33,14 +33,29 @@ flow version
 # If older than 2.4.1, update first: https://developers.flow.com/tools/flow-cli/install
 ```
 
-2) Install deps and start emulator
+2) Create `emulator-account.pkey`
+
+- Generate a key pair and copy the private key hex
+
+```bash
+flow keys generate --sig-algo ECDSA_P256 --hash-algo SHA3_256
+# Copy the "Private Key" value from the output (hex string)
+```
+
+- Save the private key to `emulator-account.pkey` in the project root
+
+```bash
+printf "<PASTE_PRIVATE_KEY_HEX_HERE>" > emulator-account.pkey
+```
+
+3) Install deps and start emulator
 
 ```bash
 flow deps install
 flow emulator --scheduled-callbacks --block-time 1s
 ```
 
-3) In a new terminal, deploy, init, schedule, verify
+4) In a new terminal, deploy, init, schedule, verify
 
 ```bash
 flow project deploy --network emulator
@@ -106,6 +121,23 @@ Other folders/files:
 - `EXAMPLE.md` – Step-by-step walkthrough to run the scheduled callbacks demo
 
 ## 👨‍💻 Start Developing
+
+### Create `emulator-account.pkey` (required)
+
+If your `flow.json` references a key file for the `emulator-account`, create one and run the emulator with that same key so signing matches the service account. This is required; starting the emulator without the same private key will cause deploys/signing to fail.
+
+1) Generate a key pair and copy the private key hex
+
+```bash
+flow keys generate --sig-algo ECDSA_P256 --hash-algo SHA3_256
+# Copy the "Private Key" value from the output (hex string)
+```
+
+2) Save the private key to `emulator-account.pkey` in the project root
+
+```bash
+printf "<PASTE_PRIVATE_KEY_HEX_HERE>" > emulator-account.pkey
+```
 
 ### Creating a New Contract
 
