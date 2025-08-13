@@ -78,7 +78,36 @@ flow transactions send cadence/transactions/ScheduleIncrementIn.cdc \
 flow scripts execute cadence/scripts/GetCounter.cdc --network emulator
 ```
 
-For full details see `EXAMPLE.md`.
+For full details see `EXAMPLE.md`. For the continuous loop variant, see `EXAMPLE-LOOP.md`.
+
+## ▶️ Quick Start (Scheduled Callbacks Loop Example)
+
+Follow this to run the demo that continuously increments the `Counter` by rescheduling on each callback execution.
+
+Repeat steps 1–3 above, then in a new terminal run:
+
+```bash
+flow project deploy --network emulator
+
+flow transactions send cadence/transactions/InitCounterLoopCallbackHandler.cdc \
+  --network emulator --signer emulator-account
+
+flow scripts execute cadence/scripts/GetCounter.cdc --network emulator
+
+flow transactions send cadence/transactions/ScheduleIncrementInLoop.cdc \
+  --network emulator --signer emulator-account \
+  --args-json '[
+    {"type":"UFix64","value":"2.0"},
+    {"type":"UInt8","value":"1"},
+    {"type":"UInt64","value":"1000"},
+    {"type":"Optional","value":null}
+  ]'
+
+# after ~3s, the callback runs and schedules the next one automatically
+flow scripts execute cadence/scripts/GetCounter.cdc --network emulator
+```
+
+For full details and troubleshooting, see `EXAMPLE-LOOP.md`.
 
 ## 📦 Project Structure
 
@@ -119,6 +148,7 @@ Docs and rules live under `/.cursor/rules/scheduledcallbacks`:
 Other folders/files:
 
 - `EXAMPLE.md` – Step-by-step walkthrough to run the scheduled callbacks demo
+ - `EXAMPLE-LOOP.md` – Step-by-step walkthrough for the continuous loop scheduled callbacks demo
 
 ## 👨‍💻 Start Developing
 
