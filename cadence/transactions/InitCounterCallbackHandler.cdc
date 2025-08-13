@@ -9,7 +9,7 @@ transaction() {
             signer.storage.save(<-handler, to: /storage/CounterCallbackHandler)
         }
 
-        // Issue a handler capability with correct entitlement for FlowCallbackScheduler
+        // Validation/example that we can create an issue a handler capability with correct entitlement for FlowCallbackScheduler
         let _ = signer.capabilities.storage
             .issue<auth(FlowCallbackScheduler.Execute) &{FlowCallbackScheduler.CallbackHandler}>(/storage/CounterCallbackHandler)
     }
