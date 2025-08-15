@@ -38,7 +38,7 @@ flow version
 - Generate a key pair and copy the private key hex
 
 ```bash
-flow keys generate --sig-algo ECDSA_P256 --hash-algo SHA3_256
+flow keys generate
 # Copy the "Private Key" value from the output (hex string)
 ```
 
