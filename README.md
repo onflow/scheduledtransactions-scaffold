@@ -109,6 +109,36 @@ flow scripts execute cadence/scripts/GetCounter.cdc --network emulator
 
 For full details and troubleshooting, see `EXAMPLE-LOOP.md`.
 
+## ▶️ Quick Start (Scheduled Callbacks Cron Example)
+
+Follow this to run the demo that increments the `Counter` at precise intervals using cron-like scheduling (prevents drift).
+
+Repeat steps 1–3 above, then in a new terminal run:
+
+```bash
+flow project deploy --network emulator
+
+flow transactions send cadence/transactions/InitCounterCronCallbackHandler.cdc \
+  --network emulator --signer emulator-account
+
+flow scripts execute cadence/scripts/GetCounter.cdc --network emulator
+
+flow transactions send cadence/transactions/ScheduleIncrementInCron.cdc \
+  --network emulator --signer emulator-account \
+  --args-json '[
+    {"type":"UFix64","value":"3.0"},
+    {"type":"UInt8","value":"1"},
+    {"type":"UInt64","value":"1000"},
+    {"type":"Optional","value":{"type":"UInt64","value":"3"}},
+    {"type":"Optional","value":null}
+  ]'
+
+# after ~12s, check that it ran exactly 3 times at precise 3-second intervals
+flow scripts execute cadence/scripts/GetCounter.cdc --network emulator
+```
+
+For full details and troubleshooting, see `EXAMPLE-CRON.md`.
+
 ## 📦 Project Structure
 
 Your project has been set up with the following structure:
@@ -123,12 +153,18 @@ Inside the `cadence` folder you will find:
 - `/contracts` - This folder contains your Cadence contracts (these are deployed to the network and contain the business logic for your application)
   - `Counter.cdc`
   - `CounterCallbackHandler.cdc`
+  - `CounterLoopCallbackHandler.cdc`
+  - `CounterCronCallbackHandler.cdc`
 - `/scripts` - This folder contains your Cadence scripts (read-only operations)
   - `GetCounter.cdc`
 - `/transactions` - This folder contains your Cadence transactions (state-changing operations)
   - `IncrementCounter.cdc`
   - `InitCounterCallbackHandler.cdc`
+  - `InitCounterLoopCallbackHandler.cdc`
+  - `InitCounterCronCallbackHandler.cdc`
   - `ScheduleIncrementIn.cdc`
+  - `ScheduleIncrementInLoop.cdc`
+  - `ScheduleIncrementInCron.cdc`
 - `/tests` - This folder contains your Cadence tests (integration tests for your contracts, scripts, and transactions to verify they behave as expected)
   - `Counter_test.cdc`
 
@@ -148,7 +184,8 @@ Docs and rules live under `/.cursor/rules/scheduledcallbacks`:
 Other folders/files:
 
 - `EXAMPLE.md` – Step-by-step walkthrough to run the scheduled callbacks demo
- - `EXAMPLE-LOOP.md` – Step-by-step walkthrough for the continuous loop scheduled callbacks demo
+- `EXAMPLE-LOOP.md` – Step-by-step walkthrough for the continuous loop scheduled callbacks demo
+- `EXAMPLE-CRON.md` – Step-by-step walkthrough for the cron-like scheduled callbacks demo (precise intervals)
 
 ## 👨‍💻 Start Developing
 
