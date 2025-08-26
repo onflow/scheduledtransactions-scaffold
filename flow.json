@@ -24,6 +24,18 @@
         "testing": "0000000000000007"
       }
     },
+    "CronJobScheduler": {
+      "source": "cadence/contracts/CronJobScheduler.cdc",
+      "aliases": {
+        "testing": "0000000000000007"
+      }
+    },
+    "CounterCronJob": {
+      "source": "cadence/contracts/CounterCronJob.cdc",
+      "aliases": {
+        "testing": "0000000000000007"
+      }
+    },
     "FlowCallbackScheduler": {
       "source": "core-contracts/FlowCallbackScheduler.cdc",
       "aliases": {
@@ -130,7 +142,9 @@
         "Counter",
         "CounterCallbackHandler",
         "CounterLoopCallbackHandler",
-        "CounterCronCallbackHandler"
+        "CounterCronCallbackHandler",
+        "CronJobScheduler",
+        "CounterCronJob"
       ]
     }
   }
