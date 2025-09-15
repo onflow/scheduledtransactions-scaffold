@@ -17,23 +17,23 @@ Core pieces:
 Here are some essential resources to help you hit the ground running:
 
 - **[Flow Documentation](https://developers.flow.com/)** - The official Flow Documentation is a great starting point to start learning about about [building](https://developers.flow.com/build/flow) on Flow.
-- **[Cadence Documentation](https://cadence-lang.org/docs/language)** - Cadence is the native language for the Flow Blockchain. It is a resource-oriented programming language that is designed for developing smart contracts.  The documentation is a great place to start learning about the language.
-- **[Visual Studio Code](https://code.visualstudio.com/)** and the **[Cadence Extension](https://marketplace.visualstudio.com/items?itemName=onflow.cadence)** - It is recommended to use the Visual Studio Code IDE with the Cadence extension installed.  This will provide syntax highlighting, code completion, and other features to support Cadence development.
-- **[Flow Clients](https://developers.flow.com/tools/clients)** - There are clients available in multiple languages to interact with the Flow Blockchain.  You can use these clients to interact with your smart contracts, run transactions, and query data from the network.
-- **[Block Explorers](https://developers.flow.com/ecosystem/block-explorers)** - Block explorers are tools that allow you to explore on-chain data.  You can use them to view transactions, accounts, events, and other information.  [Flowser](https://flowser.dev/) is a powerful block explorer for local development on the Flow Emulator.
+- **[Cadence Documentation](https://cadence-lang.org/docs/language)** - Cadence is the native language for the Flow Blockchain. It is a resource-oriented programming language that is designed for developing smart contracts. The documentation is a great place to start learning about the language.
+- **[Visual Studio Code](https://code.visualstudio.com/)** and the **[Cadence Extension](https://marketplace.visualstudio.com/items?itemName=onflow.cadence)** - It is recommended to use the Visual Studio Code IDE with the Cadence extension installed. This will provide syntax highlighting, code completion, and other features to support Cadence development.
+- **[Flow Clients](https://developers.flow.com/tools/clients)** - There are clients available in multiple languages to interact with the Flow Blockchain. You can use these clients to interact with your smart contracts, run transactions, and query data from the network.
+- **[Block Explorers](https://developers.flow.com/ecosystem/block-explorers)** - Block explorers are tools that allow you to explore on-chain data. You can use them to view transactions, accounts, events, and other information. [Flowser](https://flowser.dev/) is a powerful block explorer for local development on the Flow Emulator.
 
 ## ▶️ Quick Start (Scheduled Callbacks Example)
 
 Follow this to run the demo that schedules a callback to increment the `Counter`.
 
-1) Ensure flow-cli 2.4.1
+1. Ensure flow-cli 2.6.0
 
 ```bash
 flow version
-# If older than 2.4.1, update first: https://developers.flow.com/tools/flow-cli/install
+# If older than 2.6.0, update first: https://developers.flow.com/tools/flow-cli/install
 ```
 
-2) Create `emulator-account.pkey`
+2. Create `emulator-account.pkey`
 
 - Generate a key pair and copy the private key hex
 
@@ -48,14 +48,14 @@ flow keys generate
 printf "<PASTE_PRIVATE_KEY_HEX_HERE>" > emulator-account.pkey
 ```
 
-3) Install deps and start emulator
+3. Install deps and start emulator
 
 ```bash
 flow deps install
 flow emulator --scheduled-callbacks --block-time 1s
 ```
 
-4) In a new terminal, deploy, init, schedule, verify
+4. In a new terminal, deploy, init, schedule, verify
 
 ```bash
 flow project deploy --network emulator
@@ -193,14 +193,14 @@ Other folders/files:
 
 If your `flow.json` references a key file for the `emulator-account`, create one and run the emulator with that same key so signing matches the service account. This is required; starting the emulator without the same private key will cause deploys/signing to fail.
 
-1) Generate a key pair and copy the private key hex
+1. Generate a key pair and copy the private key hex
 
 ```bash
 flow keys generate --sig-algo ECDSA_P256 --hash-algo SHA3_256
 # Copy the "Private Key" value from the output (hex string)
 ```
 
-2) Save the private key to `emulator-account.pkey` in the project root
+2. Save the private key to `emulator-account.pkey` in the project root
 
 ```bash
 printf "<PASTE_PRIVATE_KEY_HEX_HERE>" > emulator-account.pkey
@@ -224,9 +224,9 @@ To add a new script to your project, run the following command:
 flow generate script
 ```
 
-This command will create a new script file.  Scripts are used to read data from the blockchain and do not modify state (i.e. get the current balance of an account, get a user's NFTs, etc).
+This command will create a new script file. Scripts are used to read data from the blockchain and do not modify state (i.e. get the current balance of an account, get a user's NFTs, etc).
 
-You can import any of your own contracts or installed dependencies in your script file using the `import` keyword.  For example:
+You can import any of your own contracts or installed dependencies in your script file using the `import` keyword. For example:
 
 ```cadence
 import "Counter"
@@ -240,7 +240,7 @@ To add a new transaction to your project you can use the following command:
 flow generate transaction
 ```
 
-This command will create a new transaction file.  Transactions are used to modify the state of the blockchain (i.e purchase an NFT, transfer tokens, etc).
+This command will create a new transaction file. Transactions are used to modify the state of the blockchain (i.e purchase an NFT, transfer tokens, etc).
 
 You can import any dependencies as you would in a script file.
 
