@@ -1,4 +1,4 @@
-import "FlowCallbackScheduler"
+import "FlowTransactionScheduler"
 import "FlowToken"
 import "FungibleToken"
 
@@ -7,26 +7,26 @@ transaction(
     delaySeconds: UFix64,
     priority: UInt8,
     executionEffort: UInt64,
-    callbackData: AnyStruct?
+    transactionData: AnyStruct?
 ) {
     prepare(signer: auth(Storage, Capabilities) &Account) {
         let future = getCurrentBlock().timestamp + delaySeconds
 
         let pr = priority == 0
-            ? FlowCallbackScheduler.Priority.High
+            ? FlowTransactionScheduler.Priority.High
             : priority == 1
-                ? FlowCallbackScheduler.Priority.Medium
-                : FlowCallbackScheduler.Priority.Low
+                ? FlowTransactionScheduler.Priority.Medium
+                : FlowTransactionScheduler.Priority.Low
 
-        let est = FlowCallbackScheduler.estimate(
-            data: callbackData,
+        let est = FlowTransactionScheduler.estimate(
+            data: transactionData,
             timestamp: future,
             priority: pr,
             executionEffort: executionEffort
         )
 
         assert(
-            est.timestamp != nil || pr == FlowCallbackScheduler.Priority.Low,
+            est.timestamp != nil || pr == FlowTransactionScheduler.Priority.Low,
             message: est.error ?? "estimation failed"
         )
 
@@ -36,18 +36,18 @@ transaction(
         let fees <- vaultRef.withdraw(amount: est.flowFee ?? 0.0) as! @FlowToken.Vault
 
         let handlerCap = signer.capabilities.storage
-            .issue<auth(FlowCallbackScheduler.Execute) &{FlowCallbackScheduler.CallbackHandler}>(/storage/CounterCallbackHandler)
+            .issue<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>(/storage/CounterTransactionHandler)
 
-        let receipt = FlowCallbackScheduler.schedule(
-            callback: handlerCap,
-            data: callbackData,
+        let receipt = FlowTransactionScheduler.schedule(
+            transaction: handlerCap,
+            data: transactionData,
             timestamp: future,
             priority: pr,
             executionEffort: executionEffort,
             fees: <-fees
         )
 
-        log("Scheduled callback id: ".concat(receipt.id.toString()).concat(" at ").concat(receipt.timestamp.toString()))
+        log("Scheduled transaction id: ".concat(receipt.id.toString()).concat(" at ").concat(receipt.timestamp.toString()))
     }
 }
 

@@ -1,11 +1,11 @@
-import "FlowCallbackScheduler"
+import "FlowTransactionScheduler"
 import "FlowToken"
 import "FungibleToken"
 import "Counter"
 
-access(all) contract CounterCronCallbackHandler {
+access(all) contract CounterCronTransactionHandler {
 
-    /// Struct to hold cron configuration data (immutable for callback serialization)
+    /// Struct to hold cron configuration data (immutable for transaction serialization)
     access(all) struct CounterCronConfig {
         access(all) let intervalSeconds: UFix64
         access(all) let baseTimestamp: UFix64
@@ -50,14 +50,14 @@ access(all) contract CounterCronCallbackHandler {
         }
     }
 
-    /// Handler resource that implements the Scheduled Callback interface
-    access(all) resource Handler: FlowCallbackScheduler.CallbackHandler {
-        access(FlowCallbackScheduler.Execute) fun executeCallback(id: UInt64, data: AnyStruct?) {
+    /// Handler resource that implements the Scheduled Transaction interface
+    access(all) resource Handler: FlowTransactionScheduler.TransactionHandler {
+        access(FlowTransactionScheduler.Execute) fun executeTransaction(id: UInt64, data: AnyStruct?) {
             Counter.increment()
             let newCount = Counter.getCount()
-            log("Counter cron callback executed (id: ".concat(id.toString()).concat(") newCount: ").concat(newCount.toString()))
+            log("Counter cron transaction executed (id: ".concat(id.toString()).concat(") newCount: ").concat(newCount.toString()))
 
-            // Extract cron configuration from callback data
+            // Extract cron configuration from transaction data
             let cronConfig = data as! CounterCronConfig? ?? panic("CounterCronConfig data is required")
             let updatedConfig = cronConfig.withIncrementedCount()
 
@@ -69,10 +69,10 @@ access(all) contract CounterCronCallbackHandler {
 
             // Calculate the next precise execution time
             let nextExecutionTime = cronConfig.getNextExecutionTime()
-            let priority = FlowCallbackScheduler.Priority.Medium
+            let priority = FlowTransactionScheduler.Priority.Medium
             let executionEffort: UInt64 = 1000
 
-            let estimate = FlowCallbackScheduler.estimate(
+            let estimate = FlowTransactionScheduler.estimate(
                 data: updatedConfig,
                 timestamp: nextExecutionTime,
                 priority: priority,
@@ -80,28 +80,28 @@ access(all) contract CounterCronCallbackHandler {
             )
 
             assert(
-                estimate.timestamp != nil || priority == FlowCallbackScheduler.Priority.Low,
+                estimate.timestamp != nil || priority == FlowTransactionScheduler.Priority.Low,
                 message: estimate.error ?? "estimation failed"
             )
 
             // Ensure a handler resource exists in the contract account storage
-            if CounterCronCallbackHandler.account.storage.borrow<&AnyResource>(from: /storage/CounterCronCallbackHandler) == nil {
-                let handler <- CounterCronCallbackHandler.createHandler()
-                CounterCronCallbackHandler.account.storage.save(<-handler, to: /storage/CounterCronCallbackHandler)
+            if CounterCronTransactionHandler.account.storage.borrow<&AnyResource>(from: /storage/CounterCronTransactionHandler) == nil {
+                let handler <- CounterCronTransactionHandler.createHandler()
+                CounterCronTransactionHandler.account.storage.save(<-handler, to: /storage/CounterCronTransactionHandler)
             }
 
             // Withdraw FLOW fees from this contract's account vault
-            let vaultRef = CounterCronCallbackHandler.account.storage
+            let vaultRef = CounterCronTransactionHandler.account.storage
                 .borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
                 ?? panic("missing FlowToken vault on contract account")
             let fees <- vaultRef.withdraw(amount: estimate.flowFee ?? 0.0) as! @FlowToken.Vault
 
             // Issue a capability to the handler stored in this contract account
-            let handlerCap = CounterCronCallbackHandler.account.capabilities.storage
-                .issue<auth(FlowCallbackScheduler.Execute) &{FlowCallbackScheduler.CallbackHandler}>(/storage/CounterCronCallbackHandler)
+            let handlerCap = CounterCronTransactionHandler.account.capabilities.storage
+                .issue<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>(/storage/CounterCronTransactionHandler)
 
-            let receipt = FlowCallbackScheduler.schedule(
-                callback: handlerCap,
+            let receipt = FlowTransactionScheduler.schedule(
+                transaction: handlerCap,
                 data: updatedConfig,
                 timestamp: nextExecutionTime,
                 priority: priority,
@@ -109,7 +109,7 @@ access(all) contract CounterCronCallbackHandler {
                 fees: <-fees
             )
 
-            log("Next counter cron callback scheduled (id: ".concat(receipt.id.toString()).concat(") at ").concat(receipt.timestamp.toString()).concat(" (execution #").concat(updatedConfig.executionCount.toString()).concat(")"))
+            log("Next counter cron transaction scheduled (id: ".concat(receipt.id.toString()).concat(") at ").concat(receipt.timestamp.toString()).concat(" (execution #").concat(updatedConfig.executionCount.toString()).concat(")"))
         }
     }
 

@@ -6,26 +6,26 @@
         "testing": "0000000000000007"
       }
     },
-    "CounterCallbackHandler": {
-      "source": "cadence/contracts/CounterCallbackHandler.cdc",
+    "CounterTransactionHandler": {
+      "source": "cadence/contracts/CounterTransactionHandler.cdc",
       "aliases": {
         "testing": "0000000000000007"
       }
     },
-    "CounterLoopCallbackHandler": {
-      "source": "cadence/contracts/CounterLoopCallbackHandler.cdc",
+    "CounterLoopTransactionHandler": {
+      "source": "cadence/contracts/CounterLoopTransactionHandler.cdc",
       "aliases": {
         "testing": "0000000000000007"
       }
     },
-    "CounterCronCallbackHandler": {
-      "source": "cadence/contracts/CounterCronCallbackHandler.cdc",
+    "CounterCronTransactionHandler": {
+      "source": "cadence/contracts/CounterCronTransactionHandler.cdc",
       "aliases": {
         "testing": "0000000000000007"
       }
     },
-    "FlowCallbackScheduler": {
-      "source": "core-contracts/FlowCallbackScheduler.cdc",
+    "FlowTransactionScheduler": {
+      "source": "core-contracts/FlowTransactionScheduler.cdc",
       "aliases": {
         "emulator": "f8d6e0586b0a20c7",
         "testing": "f8d6e0586b0a20c7"
@@ -128,9 +128,9 @@
     "emulator": {
       "emulator-account": [
         "Counter",
-        "CounterCallbackHandler",
-        "CounterLoopCallbackHandler",
-        "CounterCronCallbackHandler"
+        "CounterTransactionHandler",
+        "CounterLoopTransactionHandler",
+        "CounterCronTransactionHandler"
       ]
     }
   }

@@ -45,7 +45,7 @@ access(all) contract FlowToken: FungibleToken {
         }
 
         /// Called when a fungible token is burned via the `Burner.burn()` method
-        access(contract) fun burnCallback() {
+        access(contract) fun burnTransaction() {
             if self.balance > 0.0 {
                 FlowToken.totalSupply = FlowToken.totalSupply - self.balance
             }

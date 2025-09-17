@@ -1,14 +1,14 @@
-# Scheduled Callbacks Demo: Counter Cron-like Increment
+# Scheduled Transactions Demo: Counter Cron-like Increment
 
-This example shows how to schedule a cron-like callback that increments the `Counter` at precise intervals and verify it on the Flow Emulator.
+This example shows how to schedule a cron-like transaction that increments the `Counter` at precise intervals and verify it on the Flow Emulator.
 
-Unlike the `CounterLoopCallbackHandler` which can drift over time, the `CounterCronCallbackHandler` calculates exact execution times to prevent drift.
+Unlike the `CounterLoopTransactionHandler` which can drift over time, the `CounterCronTransactionHandler` calculates exact execution times to prevent drift.
 
 ## Files used
 
 - `cadence/contracts/Counter.cdc`
-- `cadence/contracts/CounterCronCallbackHandler.cdc`
-- `cadence/transactions/InitCounterCronCallbackHandler.cdc`
+- `cadence/contracts/CounterCronTransactionHandler.cdc`
+- `cadence/transactions/InitCounterCronTransactionHandler.cdc`
 - `cadence/transactions/ScheduleIncrementInCron.cdc`
 - `cadence/scripts/GetCounter.cdc`
 
@@ -18,10 +18,10 @@ Unlike the `CounterLoopCallbackHandler` which can drift over time, the `CounterC
 flow deps install
 ```
 
-## 1) Start the emulator with Scheduled Callbacks
+## 1) Start the emulator with Scheduled Transactions
 
 ```bash
-flow emulator --scheduled-callbacks --block-time 1s
+flow emulator --scheduled-transactions --block-time 1s
 ```
 
 Keep this running. Open a new terminal for the next steps.
@@ -32,29 +32,31 @@ Keep this running. Open a new terminal for the next steps.
 flow project deploy --network emulator
 ```
 
-This deploys `Counter`, `CounterCallbackHandler`, `CounterLoopCallbackHandler`, and `CounterCronCallbackHandler` (see `flow.json`).
+This deploys `Counter`, `CounterTransactionHandler`, `CounterLoopTransactionHandler`, and `CounterCronTransactionHandler` (see `flow.json`).
 
 Expected output:
+
 ```
 Counter -> 0xf8d6e0586b0a20c7
-CounterCallbackHandler -> 0xf8d6e0586b0a20c7
-CounterLoopCallbackHandler -> 0xf8d6e0586b0a20c7
-CounterCronCallbackHandler -> 0xf8d6e0586b0a20c7
+CounterTransactionHandler -> 0xf8d6e0586b0a20c7
+CounterLoopTransactionHandler -> 0xf8d6e0586b0a20c7
+CounterCronTransactionHandler -> 0xf8d6e0586b0a20c7
 
 🎉 All contracts deployed successfully
 ```
 
 ## 3) Initialize the counter cron handler capability
 
-Saves a handler resource at `/storage/CounterCronCallbackHandler` and issues the correct capability for the scheduler.
+Saves a handler resource at `/storage/CounterCronTransactionHandler` and issues the correct capability for the scheduler.
 
 ```bash
-flow transactions send cadence/transactions/InitCounterCronCallbackHandler.cdc \
+flow transactions send cadence/transactions/InitCounterCronTransactionHandler.cdc \
   --network emulator \
   --signer emulator-account
 ```
 
 Expected output:
+
 ```
 Transaction ID: 2ee86605b4528dbff1e816a36b59e4e3d507a41c1979370f0cc87db0539f267a
 Status          ✅ SEALED
@@ -70,7 +72,7 @@ Expected: `Result: 0`
 
 ## 5) Schedule a counter cron job to increment every 3 seconds (limited to 3 executions)
 
-Uses `ScheduleIncrementInCron.cdc` to schedule callbacks at precise 3-second intervals.
+Uses `ScheduleIncrementInCron.cdc` to schedule transactions at precise 3-second intervals.
 
 ```bash
 flow transactions send cadence/transactions/ScheduleIncrementInCron.cdc \
@@ -86,6 +88,7 @@ flow transactions send cadence/transactions/ScheduleIncrementInCron.cdc \
 ```
 
 Parameters explained:
+
 - `intervalSeconds`: `3.0` - Execute every 3 seconds
 - `priority`: `1` (Medium) - You can use `0` = High or `2` = Low
 - `executionEffort`: `1000` - Must be >= 10 (1000 is a safe example value)
@@ -93,17 +96,18 @@ Parameters explained:
 - `baseTimestamp`: `null` - Use current time as base (or specify a UFix64 timestamp)
 
 Expected output:
+
 ```
 Transaction ID: e9cc49e5b0a29ade56c08aa60c45775ee852692ba48f313552a037d82a09026d
 Status          ✅ SEALED
 Events:
     - flow.StorageCapabilityControllerIssued
-    - A.f8d6e0586b0a20c7.FlowCallbackScheduler.Scheduled
+    - A.f8d6e0586b0a20c7.FlowTransactionScheduler.Scheduled
 ```
 
 ## 6) Wait and verify the counter cron job executes
 
-Wait a few seconds for the callbacks to execute, then check the counter:
+Wait a few seconds for the transactions to execute, then check the counter:
 
 ```bash
 sleep 5
@@ -157,6 +161,7 @@ To start a counter cron job at a specific future timestamp, you can calculate a 
 **Note**: This example is more complex and mainly for advanced use cases. For most applications, using `null` for `baseTimestamp` (immediate start) is recommended.
 
 **Multi-line version:**
+
 ```bash
 # Create a temporary script to get current timestamp
 echo 'access(all) fun main(): UFix64 { return getCurrentBlock().timestamp }' > temp_timestamp.cdc
@@ -182,6 +187,7 @@ rm temp_timestamp.cdc
 ```
 
 **Single-line version (copy and execute):**
+
 ```bash
 echo 'access(all) fun main(): UFix64 { return getCurrentBlock().timestamp }' > temp_timestamp.cdc && CURRENT_TIME=$(flow scripts execute temp_timestamp.cdc --network emulator | grep "Result:" | awk '{print $2}') && FUTURE_TIME=$(echo "$CURRENT_TIME + 10.0" | bc) && flow transactions send cadence/transactions/ScheduleIncrementInCron.cdc --network emulator --signer emulator-account --args-json '[{"type":"UFix64","value":"5.0"},{"type":"UInt8","value":"1"},{"type":"UInt64","value":"1000"},{"type":"Optional","value":{"type":"UInt64","value":"2"}},{"type":"Optional","value":{"type":"UFix64","value":"'$FUTURE_TIME'"}}]' && rm temp_timestamp.cdc
 ```
@@ -204,17 +210,17 @@ flow transactions send cadence/transactions/ScheduleIncrementInCron.cdc \
   ]'
 ```
 
-## Key Differences from CounterLoopCallbackHandler
+## Key Differences from CounterLoopTransactionHandler
 
-### CounterLoopCallbackHandler
+### CounterLoopTransactionHandler
 
-- Schedules next callback with simple delay from current time
+- Schedules next transaction with simple delay from current time
 - May drift over time due to execution delays
 - Uses: `getCurrentBlock().timestamp + delay`
 
-### CounterCronCallbackHandler  
+### CounterCronTransactionHandler
 
-- Schedules callbacks at precise intervals from a base timestamp
+- Schedules transactions at precise intervals from a base timestamp
 - Prevents drift by calculating exact next execution time
 - Uses: `baseTimestamp + (intervals * intervalSeconds)`
 - Supports limited executions with `maxExecutions`
@@ -265,10 +271,10 @@ This runs every hour for 24 hours (1 day) with low priority to save on fees.
 
 - **Invalid timestamp error**: Ensure `baseTimestamp` (if provided) is in the future
 - **Missing FlowToken vault**: On emulator the default account has a vault; if you use a custom account, initialize it accordingly
-- **Callback not executing**: Check that `intervalSeconds` is reasonable and the emulator is running with `--scheduled-callbacks`
-- **Drift concerns**: Unlike simple delay-based scheduling, counter cron callbacks calculate exact times to prevent drift
-- **Fee management**: Each callback execution requires fees; ensure sufficient FLOW balance for long-running jobs
-- **More docs**: see `/.cursor/rules/scheduledcallbacks/index.md`, `agent-rules.mdc`, and `flip.md` in this repo
+- **Transaction not executing**: Check that `intervalSeconds` is reasonable and the emulator is running with `--scheduled-transactions`
+- **Drift concerns**: Unlike simple delay-based scheduling, counter cron transactions calculate exact times to prevent drift
+- **Fee management**: Each transaction execution requires fees; ensure sufficient FLOW balance for long-running jobs
+- **More docs**: see `/.cursor/rules/scheduledtransactions/index.md`, `agent-rules.mdc`, and `flip.md` in this repo
 
 ## Complete Test Sequence
 
@@ -276,14 +282,14 @@ Here's a complete test you can run to verify everything works:
 
 ```bash
 # 1. Start emulator (in background)
-flow emulator --scheduled-callbacks --block-time 1s &
+flow emulator --scheduled-transactions --block-time 1s &
 
 # 2. Wait for startup, then deploy
 sleep 3
 flow project deploy --network emulator
 
 # 3. Initialize counter cron handler
-flow transactions send cadence/transactions/InitCounterCronCallbackHandler.cdc \
+flow transactions send cadence/transactions/InitCounterCronTransactionHandler.cdc \
   --network emulator --signer emulator-account
 
 # 4. Check initial counter
