@@ -245,8 +245,8 @@ You can import any dependencies as you would in a script file.
   - `priority: UInt8` (0 = High, 1 = Medium, 2 = Low)
   - `executionEffort: UInt64` (minimum 10)
   - `handlerStoragePath: StoragePath`
-  - `transactionData: AnyStruct?` (<= 100 bytes)
-- Flow: Estimate → withdraw fees → issue handler capability → schedule → optionally save the `ScheduledTransaction` receipt.
+  - `transactionData: AnyStruct?`
+- Flow: Estimate → withdraw fees → issue handler capability → schedule → destroy or save the `ScheduledTransaction` receipt resource.
 
 Minimal scheduling skeleton:
 
@@ -289,8 +289,8 @@ transaction(
         let handlerCap = signer.capabilities.storage
             .issue<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>(handlerStoragePath)
 
-        let receipt = FlowTransactionScheduler.schedule(
-            transaction: handlerCap,
+        let receipt <- FlowTransactionScheduler.schedule(
+            handlerCap: handlerCap,
             data: transactionData,
             timestamp: timestamp,
             priority: p,
@@ -298,6 +298,7 @@ transaction(
             fees: <-fees
         )
         // Optionally store or log receipt.id
+        destroy receipt
     }
 }
 ```
