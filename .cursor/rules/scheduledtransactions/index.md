@@ -16,4 +16,3 @@
 ## 🛠️ Development Resources
 
 - [`flip.md`](./flip.md) – FLIP 330: Scheduled Transactions specification and implementation details
-- [`../../../core-contracts/FlowTransactionScheduler.cdc`](../../../core-contracts/FlowTransactionScheduler.cdc) - The **FlowTransactionScheduler** core contract is located in `../../../core-contracts/FlowTransactionScheduler.cdc` for easy reference.

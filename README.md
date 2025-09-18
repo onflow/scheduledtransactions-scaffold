@@ -26,11 +26,11 @@ Here are some essential resources to help you hit the ground running:
 
 Follow this to run the demo that schedules a transaction to increment the `Counter`.
 
-1. Ensure flow-cli 2.6.0
+1. Ensure flow-cli 2.7.0
 
 ```bash
 flow version
-# If older than 2.6.0, update first: https://developers.flow.com/tools/flow-cli/install
+# If older than 2.7.0, update first: https://developers.flow.com/tools/flow-cli/install
 ```
 
 2. Create `emulator-account.pkey`
@@ -145,7 +145,6 @@ Your project has been set up with the following structure:
 
 - `flow.json` – Project configuration and dependency aliases (string-imports)
 - `/cadence` – Your Cadence code
-- `/core-contracts` – Local copies of core contracts used by the emulator for linting and string-imports
 - `/.cursor/rules/scheduledtransactions` – Local documentation and agent guidance.
 
 Inside the `cadence` folder you will find:
@@ -167,11 +166,6 @@ Inside the `cadence` folder you will find:
   - `ScheduleIncrementInCron.cdc`
 - `/tests` - This folder contains your Cadence tests (integration tests for your contracts, scripts, and transactions to verify they behave as expected)
   - `Counter_test.cdc`
-
-Inside the `/core-contracts` folder you will find:
-
-- `FlowTransactionScheduler.cdc` – The core Scheduled Transactions contract used by emulator
-- `FlowToken.cdc`, `FlowFees.cdc`, `FlowStorageFees.cdc` – Core contracts to support fee and storage calculations
 
 Docs and rules live under `/.cursor/rules/scheduledtransactions`:
 
@@ -364,7 +358,6 @@ This command will start the Flow Emulator and deploy your project to it. You can
 
 - [Cadence Design Patterns](https://cadence-lang.org/docs/design-patterns)
 - [Cadence Anti-Patterns](https://cadence-lang.org/docs/anti-patterns)
-- [Flow Core Contracts](https://developers.flow.com/build/core-contracts)
 
 ## 🤝 Community
 

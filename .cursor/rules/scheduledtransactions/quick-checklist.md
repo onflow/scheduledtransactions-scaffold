@@ -1,9 +1,5 @@
 # Quick Checklist
 
-## FlowTransactionScheduler Contract Reference
-
-The **FlowTransactionScheduler** contract is located in [`../../../core-contracts/FlowTransactionScheduler.cdc`](../../../core-contracts/FlowTransactionScheduler.cdc) for easy reference.
-
 ## Imports
 
 - Use `import "ContractName"` format only.
