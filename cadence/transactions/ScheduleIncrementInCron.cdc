@@ -1,9 +1,9 @@
-import "FlowCallbackScheduler"
+import "FlowTransactionScheduler"
 import "FlowToken"
 import "FungibleToken"
-import "CounterCronCallbackHandler"
+import "CounterCronTransactionHandler"
 
-/// Schedule a counter increment using cron-like callback that executes at precise intervals
+/// Schedule a counter increment using cron-like transaction that executes at precise intervals
 transaction(
     intervalSeconds: UFix64,
     priority: UInt8,
@@ -13,7 +13,7 @@ transaction(
 ) {
     prepare(signer: auth(Storage, Capabilities) &Account) {
         // Create counter cron configuration
-        let cronConfig = CounterCronCallbackHandler.createCounterCronConfig(
+        let cronConfig = CounterCronTransactionHandler.createCounterCronConfig(
             intervalSeconds: intervalSeconds,
             baseTimestamp: baseTimestamp,
             maxExecutions: maxExecutions
@@ -23,12 +23,12 @@ transaction(
         let firstExecutionTime = cronConfig.getNextExecutionTime()
 
         let pr = priority == 0
-            ? FlowCallbackScheduler.Priority.High
+            ? FlowTransactionScheduler.Priority.High
             : priority == 1
-                ? FlowCallbackScheduler.Priority.Medium
-                : FlowCallbackScheduler.Priority.Low
+                ? FlowTransactionScheduler.Priority.Medium
+                : FlowTransactionScheduler.Priority.Low
 
-        let est = FlowCallbackScheduler.estimate(
+        let est = FlowTransactionScheduler.estimate(
             data: cronConfig,
             timestamp: firstExecutionTime,
             priority: pr,
@@ -36,7 +36,7 @@ transaction(
         )
 
         assert(
-            est.timestamp != nil || pr == FlowCallbackScheduler.Priority.Low,
+            est.timestamp != nil || pr == FlowTransactionScheduler.Priority.Low,
             message: est.error ?? "estimation failed"
         )
 
@@ -46,10 +46,10 @@ transaction(
         let fees <- vaultRef.withdraw(amount: est.flowFee ?? 0.0) as! @FlowToken.Vault
 
         let handlerCap = signer.capabilities.storage
-            .issue<auth(FlowCallbackScheduler.Execute) &{FlowCallbackScheduler.CallbackHandler}>(/storage/CounterCronCallbackHandler)
+            .issue<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>(/storage/CounterCronTransactionHandler)
 
-        let receipt = FlowCallbackScheduler.schedule(
-            callback: handlerCap,
+        let receipt <- FlowTransactionScheduler.schedule(
+            handlerCap: handlerCap,
             data: cronConfig,
             timestamp: firstExecutionTime,
             priority: pr,
@@ -64,5 +64,7 @@ transaction(
         } else {
             log("Counter cron job will run indefinitely until cancelled")
         }
+        
+        destroy receipt
     }
 }
