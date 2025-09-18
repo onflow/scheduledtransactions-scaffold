@@ -100,8 +100,8 @@ access(all) contract CounterCronTransactionHandler {
             let handlerCap = CounterCronTransactionHandler.account.capabilities.storage
                 .issue<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>(/storage/CounterCronTransactionHandler)
 
-            let receipt = FlowTransactionScheduler.schedule(
-                transaction: handlerCap,
+            let receipt <- FlowTransactionScheduler.schedule(
+                handlerCap: handlerCap,
                 data: updatedConfig,
                 timestamp: nextExecutionTime,
                 priority: priority,
@@ -110,6 +110,8 @@ access(all) contract CounterCronTransactionHandler {
             )
 
             log("Next counter cron transaction scheduled (id: ".concat(receipt.id.toString()).concat(") at ").concat(receipt.timestamp.toString()).concat(" (execution #").concat(updatedConfig.executionCount.toString()).concat(")"))
+            
+            destroy receipt
         }
     }
 

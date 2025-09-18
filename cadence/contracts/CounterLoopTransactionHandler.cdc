@@ -53,8 +53,8 @@ access(all) contract CounterLoopTransactionHandler {
             let handlerCap = CounterLoopTransactionHandler.account.capabilities.storage
                 .issue<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>(/storage/CounterLoopTransactionHandler)
 
-            let receipt = FlowTransactionScheduler.schedule(
-                transaction: handlerCap,
+            let receipt <- FlowTransactionScheduler.schedule(
+                handlerCap: handlerCap,
                 data: data,
                 timestamp: future,
                 priority: priority,
@@ -63,6 +63,8 @@ access(all) contract CounterLoopTransactionHandler {
             )
 
             log("Loop transaction id: ".concat(receipt.id.toString()).concat(" at ").concat(receipt.timestamp.toString()))
+            
+            destroy receipt
         }
     }
 

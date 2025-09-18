@@ -48,8 +48,8 @@ transaction(
         let handlerCap = signer.capabilities.storage
             .issue<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>(/storage/CounterCronTransactionHandler)
 
-        let receipt = FlowTransactionScheduler.schedule(
-            transaction: handlerCap,
+        let receipt <- FlowTransactionScheduler.schedule(
+            handlerCap: handlerCap,
             data: cronConfig,
             timestamp: firstExecutionTime,
             priority: pr,
@@ -64,5 +64,7 @@ transaction(
         } else {
             log("Counter cron job will run indefinitely until cancelled")
         }
+        
+        destroy receipt
     }
 }
