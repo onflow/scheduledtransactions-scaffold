@@ -12,21 +12,34 @@ transaction(
     maxExecutions: UInt64?,
     baseTimestamp: UFix64?
 ) {
-    prepare(signer: auth(BorrowValue, IssueStorageCapabilityController, SaveValue) &Account) {
+    prepare(signer: auth(BorrowValue, IssueStorageCapabilityController, SaveValue, GetStorageCapabilityController, PublishCapability) &Account) {
         let pr = priority == 0
             ? FlowTransactionScheduler.Priority.High
             : priority == 1
                 ? FlowTransactionScheduler.Priority.Medium
                 : FlowTransactionScheduler.Priority.Low
 
-        // Get handler capability
-        let handlerCap = signer.capabilities.storage
-            .issue<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>(/storage/CounterCronTransactionHandler)
+        // Get the entitled capability that will be used to create the transaction
+        // Need to check both controllers because the order of controllers is not guaranteed
+        var handlerCap: Capability<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>? = nil
+        if let cap = signer.capabilities.storage
+                            .getControllers(forPath: /storage/CounterCronTransactionHandler)[0]
+                            .capability as? Capability<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}> {
+            handlerCap = cap
+        } else {
+            handlerCap = signer.capabilities.storage
+                            .getControllers(forPath: /storage/CounterCronTransactionHandler)[1]
+                            .capability as! Capability<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>
+        }
 
         // Save a manager resource to storage if not already present
         if signer.storage.borrow<&AnyResource>(from: FlowTransactionSchedulerUtils.managerStoragePath) == nil {
             let manager <- FlowTransactionSchedulerUtils.createManager()
             signer.storage.save(<-manager, to: FlowTransactionSchedulerUtils.managerStoragePath)
+
+            // Create a capability for the Manager
+            let managerCapPublic = signer.capabilities.storage.issue<&{FlowTransactionSchedulerUtils.Manager}>(FlowTransactionSchedulerUtils.managerStoragePath)
+            signer.capabilities.publish(managerCapPublic, at: FlowTransactionSchedulerUtils.managerPublicPath)
         }
         // Borrow the manager
         let manager = signer.storage.borrow<auth(FlowTransactionSchedulerUtils.Owner) &{FlowTransactionSchedulerUtils.Manager}>(from: FlowTransactionSchedulerUtils.managerStoragePath)
@@ -76,7 +89,7 @@ transaction(
 
         // Schedule through the manager
         let transactionId = manager.schedule(
-            handlerCap: handlerCap,
+            handlerCap: handlerCap ?? panic("Could not borrow handler capability"),
             data: cronConfig,
             timestamp: firstExecutionTime,
             priority: pr,
