@@ -10,7 +10,8 @@ Core pieces:
 
 - Capability to a handler implementing `FlowTransactionScheduler.TransactionHandler`
 - Parameters: `timestamp`, `priority`, `executionEffort`, `fees`, optional `transactionData`
-- Estimate first (`FlowTransactionScheduler.estimate`), then schedule (`FlowTransactionScheduler.schedule`)
+- Estimate first (`FlowTransactionScheduler.estimate`), then schedule using the scheduler manager
+- The scheduler manager (`FlowTransactionSchedulerUtils.Manager`) helps track and manage scheduled transactions
 
 ## 🔨 Getting Started
 
@@ -60,11 +61,13 @@ flow emulator --scheduled-transactions --block-time 1s
 ```bash
 flow project deploy --network emulator
 
+# Initialize handler (scheduler manager will be created automatically)
 flow transactions send cadence/transactions/InitCounterTransactionHandler.cdc \
   --network emulator --signer emulator-account
 
 flow scripts execute cadence/scripts/GetCounter.cdc --network emulator
 
+# Schedule increment (creates manager if needed)
 flow transactions send cadence/transactions/ScheduleIncrementIn.cdc \
   --network emulator --signer emulator-account \
   --args-json '[
@@ -79,6 +82,8 @@ flow scripts execute cadence/scripts/GetCounter.cdc --network emulator
 ```
 
 For full details see `EXAMPLE.md`. For the continuous loop variant, see `EXAMPLE-LOOP.md`.
+
+Note: The scheduler manager is automatically created when you schedule your first transaction, or you can initialize it separately using `InitSchedulerManager.cdc`.
 
 ## ▶️ Quick Start (Scheduled Transactions Loop Example)
 
@@ -158,12 +163,13 @@ Inside the `cadence` folder you will find:
   - `GetCounter.cdc`
 - `/transactions` - This folder contains your Cadence transactions (state-changing operations)
   - `IncrementCounter.cdc`
+  - `InitSchedulerManager.cdc` - Initialize the scheduler manager
   - `InitCounterTransactionHandler.cdc`
   - `InitCounterLoopTransactionHandler.cdc`
   - `InitCounterCronTransactionHandler.cdc`
-  - `ScheduleIncrementIn.cdc`
-  - `ScheduleIncrementInLoop.cdc`
-  - `ScheduleIncrementInCron.cdc`
+  - `ScheduleIncrementIn.cdc` - Schedule single increment
+  - `ScheduleIncrementInLoop.cdc` - Schedule looping increment
+  - `ScheduleIncrementInCron.cdc` - Schedule cron-like increment
 - `/tests` - This folder contains your Cadence tests (integration tests for your contracts, scripts, and transactions to verify they behave as expected)
   - `Counter_test.cdc`
 
@@ -239,21 +245,22 @@ You can import any dependencies as you would in a script file.
 
 ## ⏰ Scheduled Transactions – Quick Reference
 
-- Imports (string imports): `import "FlowTransactionScheduler"`, `import "FlowToken"`, `import "FungibleToken"`
+- Imports (string imports): `import "FlowTransactionScheduler"`, `import "FlowTransactionSchedulerUtils"`, `import "FlowToken"`, `import "FungibleToken"`
 - Required params when scheduling:
   - `timestamp: UFix64` (must be in the future; on emulator prefer `getCurrentBlock().timestamp + smallDelta`)
   - `priority: UInt8` (0 = High, 1 = Medium, 2 = Low)
   - `executionEffort: UInt64` (minimum 10)
-  - `handlerStoragePath: StoragePath`
+  - `handlerCap: Capability<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>`
   - `transactionData: AnyStruct?`
-- Flow: Estimate → withdraw fees → issue handler capability → schedule → destroy or save the `ScheduledTransaction` receipt resource.
+- Flow: Initialize/borrow manager → Estimate → withdraw fees → schedule through manager
 
-Minimal scheduling skeleton:
+Minimal scheduling skeleton with manager:
 
 ```cadence
 import "FlowToken"
 import "FungibleToken"
 import "FlowTransactionScheduler"
+import "FlowTransactionSchedulerUtils"
 
 transaction(
     timestamp: UFix64,
@@ -262,12 +269,27 @@ transaction(
     handlerStoragePath: StoragePath,
     transactionData: AnyStruct?
 ) {
-    prepare(signer: auth(Storage, Capabilities) &Account) {
+    prepare(signer: auth(BorrowValue, IssueStorageCapabilityController, SaveValue) &Account) {
         let p = priority == 0
             ? FlowTransactionScheduler.Priority.High
             : priority == 1
                 ? FlowTransactionScheduler.Priority.Medium
                 : FlowTransactionScheduler.Priority.Low
+
+        // Get handler capability
+        let handlerCap = signer.capabilities.storage
+            .issue<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>(handlerStoragePath)
+
+        // Initialize manager if needed
+        if signer.storage.borrow<&AnyResource>(from: FlowTransactionSchedulerUtils.managerStoragePath) == nil {
+            let manager <- FlowTransactionSchedulerUtils.createManager()
+            signer.storage.save(<-manager, to: FlowTransactionSchedulerUtils.managerStoragePath)
+        }
+
+        // Borrow manager
+        let manager = signer.storage.borrow<auth(FlowTransactionSchedulerUtils.Owner) &{FlowTransactionSchedulerUtils.Manager}>(
+            from: FlowTransactionSchedulerUtils.managerStoragePath
+        ) ?? panic("Could not borrow Manager")
 
         let est = FlowTransactionScheduler.estimate(
             data: transactionData,
@@ -286,10 +308,8 @@ transaction(
             ?? panic("missing FlowToken vault")
         let fees <- vaultRef.withdraw(amount: est.flowFee ?? 0.0) as! @FlowToken.Vault
 
-        let handlerCap = signer.capabilities.storage
-            .issue<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>(handlerStoragePath)
-
-        let receipt <- FlowTransactionScheduler.schedule(
+        // Schedule through manager
+        let transactionId = manager.schedule(
             handlerCap: handlerCap,
             data: transactionData,
             timestamp: timestamp,
@@ -297,8 +317,8 @@ transaction(
             executionEffort: executionEffort,
             fees: <-fees
         )
-        // Optionally store or log receipt.id
-        destroy receipt
+        
+        log("Scheduled transaction id: ".concat(transactionId.toString()))
     }
 }
 ```

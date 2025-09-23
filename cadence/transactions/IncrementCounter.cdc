@@ -1,7 +1,6 @@
 import "Counter"
 
 transaction {
-
     prepare(acct: &Account) {
         // Authorizes the transaction
     }

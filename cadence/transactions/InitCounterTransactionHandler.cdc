@@ -2,7 +2,7 @@ import "CounterTransactionHandler"
 import "FlowTransactionScheduler"
 
 transaction() {
-    prepare(signer: auth(Storage, Capabilities) &Account) {
+    prepare(signer: auth(BorrowValue, IssueStorageCapabilityController, SaveValue) &Account) {
         // Save a handler resource to storage if not already present
         if signer.storage.borrow<&AnyResource>(from: /storage/CounterTransactionHandler) == nil {
             let handler <- CounterTransactionHandler.createHandler()
@@ -14,5 +14,3 @@ transaction() {
             .issue<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>(/storage/CounterTransactionHandler)
     }
 }
-
-
