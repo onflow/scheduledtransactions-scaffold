@@ -8,7 +8,7 @@ These rules guide AI agents to generate correct, safe Cadence transactions using
 
 ## Required flow-cli version
 
-Required: flow-cli 2.6.1 (scheduled transactions support)
+Required: flow-cli 2.7.0 (scheduled transactions support)
 
 - Verify:
 
@@ -16,7 +16,7 @@ Required: flow-cli 2.6.1 (scheduled transactions support)
 flow version
 ```
 
-- If your version is older than 2.6.1, update before proceeding:
+- If your version is older than 2.7.0, update before proceeding:
 
 ```bash
 # macOS (Homebrew)
@@ -26,7 +26,7 @@ brew update && brew upgrade flow-cli
 # https://developers.flow.com/tools/flow-cli/install
 ```
 
-Proceed only when `flow version` reports 2.6.1.
+Proceed only when `flow version` reports 2.7.0.
 
 ## Imports
 

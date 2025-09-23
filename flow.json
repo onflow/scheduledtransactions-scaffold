@@ -23,20 +23,6 @@
       "aliases": {
         "testing": "0000000000000007"
       }
-    },
-    "FlowTransactionScheduler": {
-      "source": "core-contracts/FlowTransactionScheduler.cdc",
-      "aliases": {
-        "emulator": "f8d6e0586b0a20c7",
-        "testing": "f8d6e0586b0a20c7"
-      }
-    },
-    "FlowTransactionSchedulerUtils": {
-      "source": "core-contracts/FlowTransactionSchedulerUtils.cdc",
-      "aliases": {
-        "emulator": "f8d6e0586b0a20c7",
-        "testing": "f8d6e0586b0a20c7"
-      }
     }
   },
   "dependencies": {
@@ -74,6 +60,22 @@
         "emulator": "0ae53cb6e3f42a79",
         "mainnet": "1654653399040a61",
         "testnet": "7e60df042a9c0868"
+      }
+    },
+    "FlowTransactionScheduler": {
+      "source": "testnet://8c5303eaa26202d6.FlowTransactionScheduler",
+      "hash": "62b6f89445d1e1a4749ea03c8e8471dcbd87fd1399b6d069befd6480a2396e48",
+      "aliases": {
+        "emulator": "f8d6e0586b0a20c7",
+        "testnet": "8c5303eaa26202d6"
+      }
+    },
+    "FlowTransactionSchedulerUtils": {
+      "source": "testnet://8c5303eaa26202d6.FlowTransactionSchedulerUtils",
+      "hash": "86820aba001acea9e7f5058ee25a6735fec59c72dcfea9311c668b10908b1543",
+      "aliases": {
+        "emulator": "f8d6e0586b0a20c7",
+        "testnet": "8c5303eaa26202d6"
       }
     },
     "FungibleToken": {
