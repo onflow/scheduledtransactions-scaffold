@@ -1,9 +1,33 @@
 import "FlowTransactionScheduler"
+import "FlowTransactionSchedulerUtils"
 import "FlowToken"
 import "FungibleToken"
 import "Counter"
 
 access(all) contract CounterLoopTransactionHandler {
+
+    /// Struct to hold loop configuration data
+    access(all) struct LoopConfig {
+        access(all) let delay: UFix64
+        access(all) let schedulerManagerCap: Capability<auth(FlowTransactionSchedulerUtils.Owner) &{FlowTransactionSchedulerUtils.Manager}>
+        access(all) let feeProviderCap: Capability<auth(FungibleToken.Withdraw) &FlowToken.Vault>
+        access(all) let priority: FlowTransactionScheduler.Priority
+        access(all) let executionEffort: UInt64
+
+        init(
+            delay: UFix64,
+            schedulerManagerCap: Capability<auth(FlowTransactionSchedulerUtils.Owner) &{FlowTransactionSchedulerUtils.Manager}>,
+            feeProviderCap: Capability<auth(FungibleToken.Withdraw) &FlowToken.Vault>,
+            priority: FlowTransactionScheduler.Priority,
+            executionEffort: UInt64
+        ) {
+            self.delay = delay
+            self.schedulerManagerCap = schedulerManagerCap
+            self.feeProviderCap = feeProviderCap
+            self.priority = priority
+            self.executionEffort = executionEffort
+        }
+    }
 
     /// Handler resource that implements the Scheduled Transaction interface
     access(all) resource Handler: FlowTransactionScheduler.TransactionHandler {
@@ -12,65 +36,67 @@ access(all) contract CounterLoopTransactionHandler {
             let newCount = Counter.getCount()
             log("Transaction executed (id: ".concat(id.toString()).concat(") newCount: ").concat(newCount.toString()))
 
-            // Determine delay for the next transaction (default 3 seconds if none provided)
-            var delay: UFix64 = 3.0
-            if data != nil {
-                let t = data!.getType()
-                if t.isSubtype(of: Type<UFix64>()) {
-                    delay = data as! UFix64
-                }
-            }
+            // Extract loop configuration from transaction data
+            let loopConfig = data as! LoopConfig? ?? panic("LoopConfig data is required")
 
-            let future = getCurrentBlock().timestamp + delay
-            let priority = FlowTransactionScheduler.Priority.Medium
-            let executionEffort: UInt64 = 1000
+            let future = getCurrentBlock().timestamp + loopConfig.delay
 
             let estimate = FlowTransactionScheduler.estimate(
                 data: data,
                 timestamp: future,
-                priority: priority,
-                executionEffort: executionEffort
+                priority: loopConfig.priority,
+                executionEffort: loopConfig.executionEffort
             )
 
             assert(
-                estimate.timestamp != nil || priority == FlowTransactionScheduler.Priority.Low,
+                estimate.timestamp != nil || loopConfig.priority == FlowTransactionScheduler.Priority.Low,
                 message: estimate.error ?? "estimation failed"
             )
 
-            // Ensure a handler resource exists in the contract account storage
-            if CounterLoopTransactionHandler.account.storage.borrow<&AnyResource>(from: /storage/CounterLoopTransactionHandler) == nil {
-                let handler <- CounterLoopTransactionHandler.createHandler()
-                CounterLoopTransactionHandler.account.storage.save(<-handler, to: /storage/CounterLoopTransactionHandler)
-            }
+            // Borrow fee provider and withdraw fees
+            let feeVault = loopConfig.feeProviderCap.borrow()
+                ?? panic("Cannot borrow fee provider capability")
+            let fees <- feeVault.withdraw(amount: estimate.flowFee ?? 0.0)
 
-            // Withdraw FLOW fees from this contract's account vault
-            let vaultRef = CounterLoopTransactionHandler.account.storage
-                .borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
-                ?? panic("missing FlowToken vault on contract account")
-            let fees <- vaultRef.withdraw(amount: estimate.flowFee ?? 0.0) as! @FlowToken.Vault
-
-            // Issue a capability to the handler stored in this contract account
-            let handlerCap = CounterLoopTransactionHandler.account.capabilities.storage
-                .issue<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>(/storage/CounterLoopTransactionHandler)
-
-            let receipt <- FlowTransactionScheduler.schedule(
-                handlerCap: handlerCap,
+            // Schedule next transaction through the manager
+            let schedulerManager = loopConfig.schedulerManagerCap.borrow()
+                ?? panic("Cannot borrow scheduler manager capability")
+            
+            // Use scheduleByHandler since this handler has already been used
+            let transactionId = schedulerManager.scheduleByHandler(
+                handlerTypeIdentifier: self.getType().identifier,
+                handlerUUID: self.uuid,
                 data: data,
                 timestamp: future,
-                priority: priority,
-                executionEffort: executionEffort,
-                fees: <-fees
+                priority: loopConfig.priority,
+                executionEffort: loopConfig.executionEffort,
+                fees: <-fees as! @FlowToken.Vault
             )
 
-            log("Loop transaction id: ".concat(receipt.id.toString()).concat(" at ").concat(receipt.timestamp.toString()))
-            
-            destroy receipt
+            log("Loop transaction id: ".concat(transactionId.toString()).concat(" scheduled at ").concat(future.toString()))
         }
     }
 
     /// Factory for the handler resource
     access(all) fun createHandler(): @Handler {
         return <- create Handler()
+    }
+
+    /// Helper function to create a loop configuration
+    access(all) fun createLoopConfig(
+        delay: UFix64,
+        schedulerManagerCap: Capability<auth(FlowTransactionSchedulerUtils.Owner) &{FlowTransactionSchedulerUtils.Manager}>,
+        feeProviderCap: Capability<auth(FungibleToken.Withdraw) &FlowToken.Vault>,
+        priority: FlowTransactionScheduler.Priority,
+        executionEffort: UInt64
+    ): LoopConfig {
+        return LoopConfig(
+            delay: delay,
+            schedulerManagerCap: schedulerManagerCap,
+            feeProviderCap: feeProviderCap,
+            priority: priority,
+            executionEffort: executionEffort
+        )
     }
 }
 
