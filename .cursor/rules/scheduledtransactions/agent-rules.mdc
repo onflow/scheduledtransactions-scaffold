@@ -89,7 +89,7 @@ import "FlowTransactionScheduler"
 ## Development Guidelines
 
 - Use string imports: `import "FlowTransactionScheduler"`, `import "FlowToken"`, `import "FungibleToken"`
-- Emulator only; start with: `flow emulator --scheduled-transactions`
+- Emulator only; start with: `flow emulator`
 - Estimate before schedule: `FlowTransactionScheduler.estimate(...)`
 - Issue handler capability with correct entitlement: `auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}`
 - Save `ScheduledTransaction` if you will need to cancel later; call `FlowTransactionScheduler.cancel(transaction: receipt)` to cancel
