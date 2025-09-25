@@ -27,11 +27,11 @@ Here are some essential resources to help you hit the ground running:
 
 Follow this to run the demo that schedules a transaction to increment the `Counter`.
 
-1. Ensure flow-cli 2.7.1
+1. Ensure flow-cli 2.7.2
 
 ```bash
 flow version
-# If older than 2.7.1, update first: https://developers.flow.com/tools/flow-cli/install
+# If older than 2.7.2, update first: https://developers.flow.com/tools/flow-cli/install
 ```
 
 2. Create `emulator-account.pkey`
@@ -317,7 +317,7 @@ transaction(
             executionEffort: executionEffort,
             fees: <-fees
         )
-        
+
         log("Scheduled transaction id: ".concat(transactionId.toString()))
     }
 }
