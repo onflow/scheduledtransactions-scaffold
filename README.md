@@ -27,11 +27,11 @@ Here are some essential resources to help you hit the ground running:
 
 Follow this to run the demo that schedules a transaction to increment the `Counter`.
 
-1. Ensure flow-cli 2.7.1
+1. Ensure flow-cli 2.7.2
 
 ```bash
 flow version
-# If older than 2.7.1, update first: https://developers.flow.com/tools/flow-cli/install
+# If older than 2.7.2, update first: https://developers.flow.com/tools/flow-cli/install
 ```
 
 2. Create `emulator-account.pkey`
@@ -53,7 +53,7 @@ printf "<PASTE_PRIVATE_KEY_HEX_HERE>" > emulator-account.pkey
 
 ```bash
 flow deps install
-flow emulator --scheduled-transactions --block-time 1s
+flow emulator --block-time 1s
 ```
 
 4. In a new terminal, deploy, init, schedule, verify
@@ -317,7 +317,7 @@ transaction(
             executionEffort: executionEffort,
             fees: <-fees
         )
-        
+
         log("Scheduled transaction id: ".concat(transactionId.toString()))
     }
 }
@@ -364,7 +364,7 @@ Learn more about setting up deployment targets in the [Flow CLI documentation](h
 To deploy your project to the Flow Emulator, start the emulator with Scheduled Transactions enabled:
 
 ```shell
-flow emulator --scheduled-transactions --block-time 1s
+flow emulator --block-time 1s
 ```
 
 To deploy your project, run the following command:

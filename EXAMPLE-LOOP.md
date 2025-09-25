@@ -20,7 +20,7 @@ flow deps install
 ## 1) Start the emulator with Scheduled Transactions
 
 ```bash
-flow emulator --scheduled-transactions --block-time 1s
+flow emulator --block-time 1s
 ```
 
 Keep this running. Open a new terminal for the next steps.
