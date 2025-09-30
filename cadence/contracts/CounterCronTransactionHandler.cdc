@@ -1,30 +1,52 @@
 import "FlowTransactionScheduler"
+import "FlowTransactionSchedulerUtils"
 import "FlowToken"
 import "FungibleToken"
 import "Counter"
 
 access(all) contract CounterCronTransactionHandler {
 
-    /// Struct to hold cron configuration data (immutable for transaction serialization)
-    access(all) struct CounterCronConfig {
+    /// Struct to hold cron configuration data
+    access(all) struct CronConfig {
         access(all) let intervalSeconds: UFix64
         access(all) let baseTimestamp: UFix64
         access(all) let maxExecutions: UInt64?
         access(all) let executionCount: UInt64
+        access(all) let schedulerManagerCap: Capability<auth(FlowTransactionSchedulerUtils.Owner) &{FlowTransactionSchedulerUtils.Manager}>
+        access(all) let feeProviderCap: Capability<auth(FungibleToken.Withdraw) &FlowToken.Vault>
+        access(all) let priority: FlowTransactionScheduler.Priority
+        access(all) let executionEffort: UInt64
 
-        init(intervalSeconds: UFix64, baseTimestamp: UFix64, maxExecutions: UInt64?, executionCount: UInt64) {
+        init(
+            intervalSeconds: UFix64, 
+            baseTimestamp: UFix64, 
+            maxExecutions: UInt64?, 
+            executionCount: UInt64,
+            schedulerManagerCap: Capability<auth(FlowTransactionSchedulerUtils.Owner) &{FlowTransactionSchedulerUtils.Manager}>,
+            feeProviderCap: Capability<auth(FungibleToken.Withdraw) &FlowToken.Vault>,
+            priority: FlowTransactionScheduler.Priority,
+            executionEffort: UInt64
+        ) {
             self.intervalSeconds = intervalSeconds
             self.baseTimestamp = baseTimestamp
             self.maxExecutions = maxExecutions
             self.executionCount = executionCount
+            self.schedulerManagerCap = schedulerManagerCap
+            self.feeProviderCap = feeProviderCap
+            self.priority = priority
+            self.executionEffort = executionEffort
         }
 
-        access(all) fun withIncrementedCount(): CounterCronConfig {
-            return CounterCronConfig(
+        access(all) fun withIncrementedCount(): CronConfig {
+            return CronConfig(
                 intervalSeconds: self.intervalSeconds,
                 baseTimestamp: self.baseTimestamp,
                 maxExecutions: self.maxExecutions,
-                executionCount: self.executionCount + 1
+                executionCount: self.executionCount + 1,
+                schedulerManagerCap: self.schedulerManagerCap,
+                feeProviderCap: self.feeProviderCap,
+                priority: self.priority,
+                executionEffort: self.executionEffort
             )
         }
 
@@ -58,7 +80,7 @@ access(all) contract CounterCronTransactionHandler {
             log("Counter cron transaction executed (id: ".concat(id.toString()).concat(") newCount: ").concat(newCount.toString()))
 
             // Extract cron configuration from transaction data
-            let cronConfig = data as! CounterCronConfig? ?? panic("CounterCronConfig data is required")
+            let cronConfig = data as! CronConfig? ?? panic("CronConfig data is required")
             let updatedConfig = cronConfig.withIncrementedCount()
 
             // Check if we should continue scheduling
@@ -69,49 +91,40 @@ access(all) contract CounterCronTransactionHandler {
 
             // Calculate the next precise execution time
             let nextExecutionTime = cronConfig.getNextExecutionTime()
-            let priority = FlowTransactionScheduler.Priority.Medium
-            let executionEffort: UInt64 = 1000
 
             let estimate = FlowTransactionScheduler.estimate(
                 data: updatedConfig,
                 timestamp: nextExecutionTime,
-                priority: priority,
-                executionEffort: executionEffort
+                priority: cronConfig.priority,
+                executionEffort: cronConfig.executionEffort
             )
 
             assert(
-                estimate.timestamp != nil || priority == FlowTransactionScheduler.Priority.Low,
+                estimate.timestamp != nil || cronConfig.priority == FlowTransactionScheduler.Priority.Low,
                 message: estimate.error ?? "estimation failed"
             )
 
-            // Ensure a handler resource exists in the contract account storage
-            if CounterCronTransactionHandler.account.storage.borrow<&AnyResource>(from: /storage/CounterCronTransactionHandler) == nil {
-                let handler <- CounterCronTransactionHandler.createHandler()
-                CounterCronTransactionHandler.account.storage.save(<-handler, to: /storage/CounterCronTransactionHandler)
-            }
+            // Borrow fee provider and withdraw fees
+            let feeVault = cronConfig.feeProviderCap.borrow()
+                ?? panic("Cannot borrow fee provider capability")
+            let fees <- feeVault.withdraw(amount: estimate.flowFee ?? 0.0)
 
-            // Withdraw FLOW fees from this contract's account vault
-            let vaultRef = CounterCronTransactionHandler.account.storage
-                .borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
-                ?? panic("missing FlowToken vault on contract account")
-            let fees <- vaultRef.withdraw(amount: estimate.flowFee ?? 0.0) as! @FlowToken.Vault
-
-            // Issue a capability to the handler stored in this contract account
-            let handlerCap = CounterCronTransactionHandler.account.capabilities.storage
-                .issue<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>(/storage/CounterCronTransactionHandler)
-
-            let receipt <- FlowTransactionScheduler.schedule(
-                handlerCap: handlerCap,
+            // Schedule next transaction through the manager
+            let schedulerManager = cronConfig.schedulerManagerCap.borrow()
+                ?? panic("Cannot borrow scheduler manager capability")
+            
+            // Use scheduleByHandler since this handler has already been used
+            let transactionId = schedulerManager.scheduleByHandler(
+                handlerTypeIdentifier: self.getType().identifier,
+                handlerUUID: self.uuid,
                 data: updatedConfig,
                 timestamp: nextExecutionTime,
-                priority: priority,
-                executionEffort: executionEffort,
-                fees: <-fees
+                priority: cronConfig.priority,
+                executionEffort: cronConfig.executionEffort,
+                fees: <-fees as! @FlowToken.Vault
             )
 
-            log("Next counter cron transaction scheduled (id: ".concat(receipt.id.toString()).concat(") at ").concat(receipt.timestamp.toString()).concat(" (execution #").concat(updatedConfig.executionCount.toString()).concat(")"))
-            
-            destroy receipt
+            log("Next counter cron transaction scheduled (id: ".concat(transactionId.toString()).concat(") at ").concat(nextExecutionTime.toString()).concat(" (execution #").concat(updatedConfig.executionCount.toString()).concat(")"))
         }
     }
 
@@ -121,8 +134,25 @@ access(all) contract CounterCronTransactionHandler {
     }
 
     /// Helper function to create a cron configuration
-    access(all) fun createCounterCronConfig(intervalSeconds: UFix64, baseTimestamp: UFix64?, maxExecutions: UInt64?): CounterCronConfig {
+    access(all) fun createCronConfig(
+        intervalSeconds: UFix64, 
+        baseTimestamp: UFix64?, 
+        maxExecutions: UInt64?,
+        schedulerManagerCap: Capability<auth(FlowTransactionSchedulerUtils.Owner) &{FlowTransactionSchedulerUtils.Manager}>,
+        feeProviderCap: Capability<auth(FungibleToken.Withdraw) &FlowToken.Vault>,
+        priority: FlowTransactionScheduler.Priority,
+        executionEffort: UInt64
+    ): CronConfig {
         let base = baseTimestamp ?? getCurrentBlock().timestamp
-        return CounterCronConfig(intervalSeconds: intervalSeconds, baseTimestamp: base, maxExecutions: maxExecutions, executionCount: 0)
+        return CronConfig(
+            intervalSeconds: intervalSeconds, 
+            baseTimestamp: base, 
+            maxExecutions: maxExecutions, 
+            executionCount: 0,
+            schedulerManagerCap: schedulerManagerCap,
+            feeProviderCap: feeProviderCap,
+            priority: priority,
+            executionEffort: executionEffort
+        )
     }
 }

@@ -1,143 +1,152 @@
 {
-	"contracts": {
-		"Counter": {
-			"source": "cadence/contracts/Counter.cdc",
-			"aliases": {
-				"testing": "0000000000000007"
-			}
-		},
-		"CounterCronTransactionHandler": {
-			"source": "cadence/contracts/CounterCronTransactionHandler.cdc",
-			"aliases": {
-				"testing": "0000000000000007"
-			}
-		},
-		"CounterLoopTransactionHandler": {
-			"source": "cadence/contracts/CounterLoopTransactionHandler.cdc",
-			"aliases": {
-				"testing": "0000000000000007"
-			}
-		},
-		"CounterTransactionHandler": {
-			"source": "cadence/contracts/CounterTransactionHandler.cdc",
-			"aliases": {
-				"testing": "0000000000000007"
-			}
-		}
-	},
-	"dependencies": {
-		"Burner": {
-			"source": "testnet://9a0766d93b6608b7.Burner",
-			"hash": "71af18e227984cd434a3ad00bb2f3618b76482842bae920ee55662c37c8bf331",
-			"aliases": {
-				"emulator": "f8d6e0586b0a20c7",
-				"mainnet": "f233dcee88fe0abe",
-				"testnet": "9a0766d93b6608b7"
-			}
-		},
-		"FlowFees": {
-			"source": "testnet://912d5440f7e3769e.FlowFees",
-			"hash": "5638303da553647a3ae8af974392d802ab7ab43989759a56f071ed684f75623c",
-			"aliases": {
-				"emulator": "e5a8b7f23e8b548f",
-				"mainnet": "f919ee77447b7497",
-				"testnet": "912d5440f7e3769e"
-			}
-		},
-		"FlowStorageFees": {
-			"source": "testnet://8c5303eaa26202d6.FlowStorageFees",
-			"hash": "a4dbe988fcaa61db479b437579b3a470d8f8ce11be08827111522f19a50fdb07",
-			"aliases": {
-				"emulator": "f8d6e0586b0a20c7",
-				"mainnet": "e467b9dd11fa00df",
-				"testnet": "8c5303eaa26202d6"
-			}
-		},
-		"FlowToken": {
-			"source": "testnet://7e60df042a9c0868.FlowToken",
-			"hash": "a7b219cf8596c1116aa219bb31535faa79ebf5e02d16fa594acd0398057674e1",
-			"aliases": {
-				"emulator": "0ae53cb6e3f42a79",
-				"mainnet": "1654653399040a61",
-				"testnet": "7e60df042a9c0868"
-			}
-		},
-		"FlowTransactionScheduler": {
-			"source": "testnet://8c5303eaa26202d6.FlowTransactionScheduler",
-			"hash": "6acc5f9abf62d2c8f1227b112156108c6f8f98a6eaf150fe663d41ceca3a04be",
-			"aliases": {
-				"testnet": "8c5303eaa26202d6"
-			}
-		},
-		"FungibleToken": {
-			"source": "testnet://9a0766d93b6608b7.FungibleToken",
-			"hash": "d84e41a86bd27806367b89c75a2a9570f7713480ab113cc214c4576466888958",
-			"aliases": {
-				"emulator": "ee82856bf20e2aa6",
-				"mainnet": "f233dcee88fe0abe",
-				"testnet": "9a0766d93b6608b7"
-			}
-		},
-		"FungibleTokenMetadataViews": {
-			"source": "testnet://9a0766d93b6608b7.FungibleTokenMetadataViews",
-			"hash": "085d02742eb50e6200cf2a4ad4551857313513afa7205c1e85f5966547a56df3",
-			"aliases": {
-				"emulator": "ee82856bf20e2aa6",
-				"mainnet": "f233dcee88fe0abe",
-				"testnet": "9a0766d93b6608b7"
-			}
-		},
-		"MetadataViews": {
-			"source": "testnet://631e88ae7f1d7c20.MetadataViews",
-			"hash": "0b746cabba668c39de9dc47b94fc458f4119cbabb6883616e4a8750518310ccb",
-			"aliases": {
-				"emulator": "f8d6e0586b0a20c7",
-				"mainnet": "1d7e57aa55817448",
-				"testnet": "631e88ae7f1d7c20"
-			}
-		},
-		"NonFungibleToken": {
-			"source": "testnet://631e88ae7f1d7c20.NonFungibleToken",
-			"hash": "ac40c5a3ec05884ae48cb52ebf680deebb21e8a0143cd7d9b1dc88b0f107e088",
-			"aliases": {
-				"emulator": "f8d6e0586b0a20c7",
-				"mainnet": "1d7e57aa55817448",
-				"testnet": "631e88ae7f1d7c20"
-			}
-		},
-		"ViewResolver": {
-			"source": "testnet://631e88ae7f1d7c20.ViewResolver",
-			"hash": "374a1994046bac9f6228b4843cb32393ef40554df9bd9907a702d098a2987bde",
-			"aliases": {
-				"emulator": "f8d6e0586b0a20c7",
-				"mainnet": "1d7e57aa55817448",
-				"testnet": "631e88ae7f1d7c20"
-			}
-		}
-	},
-	"networks": {
-		"emulator": "127.0.0.1:3569",
-		"mainnet": "access.mainnet.nodes.onflow.org:9000",
-		"testing": "127.0.0.1:3569",
-		"testnet": "access.devnet.nodes.onflow.org:9000"
-	},
-	"accounts": {
-		"emulator-account": {
-			"address": "f8d6e0586b0a20c7",
-			"key": {
-				"type": "file",
-				"location": "emulator-account.pkey"
-			}
-		}
-	},
-	"deployments": {
-		"emulator": {
-			"emulator-account": [
-				"Counter",
-				"CounterTransactionHandler",
-				"CounterLoopTransactionHandler",
-				"CounterCronTransactionHandler"
-			]
-		}
-	}
+  "contracts": {
+    "Counter": {
+      "source": "cadence/contracts/Counter.cdc",
+      "aliases": {
+        "testing": "0000000000000007"
+      }
+    },
+    "CounterCronTransactionHandler": {
+      "source": "cadence/contracts/CounterCronTransactionHandler.cdc",
+      "aliases": {
+        "testing": "0000000000000007"
+      }
+    },
+    "CounterLoopTransactionHandler": {
+      "source": "cadence/contracts/CounterLoopTransactionHandler.cdc",
+      "aliases": {
+        "testing": "0000000000000007"
+      }
+    },
+    "CounterTransactionHandler": {
+      "source": "cadence/contracts/CounterTransactionHandler.cdc",
+      "aliases": {
+        "testing": "0000000000000007"
+      }
+    }
+  },
+  "dependencies": {
+    "Burner": {
+      "source": "testnet://9a0766d93b6608b7.Burner",
+      "hash": "71af18e227984cd434a3ad00bb2f3618b76482842bae920ee55662c37c8bf331",
+      "aliases": {
+        "emulator": "f8d6e0586b0a20c7",
+        "mainnet": "f233dcee88fe0abe",
+        "testnet": "9a0766d93b6608b7"
+      }
+    },
+    "FlowFees": {
+      "source": "testnet://912d5440f7e3769e.FlowFees",
+      "hash": "5638303da553647a3ae8af974392d802ab7ab43989759a56f071ed684f75623c",
+      "aliases": {
+        "emulator": "e5a8b7f23e8b548f",
+        "mainnet": "f919ee77447b7497",
+        "testnet": "912d5440f7e3769e"
+      }
+    },
+    "FlowStorageFees": {
+      "source": "testnet://8c5303eaa26202d6.FlowStorageFees",
+      "hash": "a4dbe988fcaa61db479b437579b3a470d8f8ce11be08827111522f19a50fdb07",
+      "aliases": {
+        "emulator": "f8d6e0586b0a20c7",
+        "mainnet": "e467b9dd11fa00df",
+        "testnet": "8c5303eaa26202d6"
+      }
+    },
+    "FlowToken": {
+      "source": "testnet://7e60df042a9c0868.FlowToken",
+      "hash": "a7b219cf8596c1116aa219bb31535faa79ebf5e02d16fa594acd0398057674e1",
+      "aliases": {
+        "emulator": "0ae53cb6e3f42a79",
+        "mainnet": "1654653399040a61",
+        "testnet": "7e60df042a9c0868"
+      }
+    },
+    "FlowTransactionScheduler": {
+      "source": "testnet://8c5303eaa26202d6.FlowTransactionScheduler",
+      "hash": "62b6f89445d1e1a4749ea03c8e8471dcbd87fd1399b6d069befd6480a2396e48",
+      "aliases": {
+        "emulator": "f8d6e0586b0a20c7",
+        "testnet": "8c5303eaa26202d6"
+      }
+    },
+    "FlowTransactionSchedulerUtils": {
+      "source": "testnet://8c5303eaa26202d6.FlowTransactionSchedulerUtils",
+      "hash": "86820aba001acea9e7f5058ee25a6735fec59c72dcfea9311c668b10908b1543",
+      "aliases": {
+        "emulator": "f8d6e0586b0a20c7",
+        "testnet": "8c5303eaa26202d6"
+      }
+    },
+    "FungibleToken": {
+      "source": "testnet://9a0766d93b6608b7.FungibleToken",
+      "hash": "d84e41a86bd27806367b89c75a2a9570f7713480ab113cc214c4576466888958",
+      "aliases": {
+        "emulator": "ee82856bf20e2aa6",
+        "mainnet": "f233dcee88fe0abe",
+        "testnet": "9a0766d93b6608b7"
+      }
+    },
+    "FungibleTokenMetadataViews": {
+      "source": "testnet://9a0766d93b6608b7.FungibleTokenMetadataViews",
+      "hash": "085d02742eb50e6200cf2a4ad4551857313513afa7205c1e85f5966547a56df3",
+      "aliases": {
+        "emulator": "ee82856bf20e2aa6",
+        "mainnet": "f233dcee88fe0abe",
+        "testnet": "9a0766d93b6608b7"
+      }
+    },
+    "MetadataViews": {
+      "source": "testnet://631e88ae7f1d7c20.MetadataViews",
+      "hash": "0b746cabba668c39de9dc47b94fc458f4119cbabb6883616e4a8750518310ccb",
+      "aliases": {
+        "emulator": "f8d6e0586b0a20c7",
+        "mainnet": "1d7e57aa55817448",
+        "testnet": "631e88ae7f1d7c20"
+      }
+    },
+    "NonFungibleToken": {
+      "source": "testnet://631e88ae7f1d7c20.NonFungibleToken",
+      "hash": "ac40c5a3ec05884ae48cb52ebf680deebb21e8a0143cd7d9b1dc88b0f107e088",
+      "aliases": {
+        "emulator": "f8d6e0586b0a20c7",
+        "mainnet": "1d7e57aa55817448",
+        "testnet": "631e88ae7f1d7c20"
+      }
+    },
+    "ViewResolver": {
+      "source": "testnet://631e88ae7f1d7c20.ViewResolver",
+      "hash": "374a1994046bac9f6228b4843cb32393ef40554df9bd9907a702d098a2987bde",
+      "aliases": {
+        "emulator": "f8d6e0586b0a20c7",
+        "mainnet": "1d7e57aa55817448",
+        "testnet": "631e88ae7f1d7c20"
+      }
+    }
+  },
+  "networks": {
+    "emulator": "127.0.0.1:3569",
+    "mainnet": "access.mainnet.nodes.onflow.org:9000",
+    "testing": "127.0.0.1:3569",
+    "testnet": "access.devnet.nodes.onflow.org:9000"
+  },
+  "accounts": {
+    "emulator-account": {
+      "address": "f8d6e0586b0a20c7",
+      "key": {
+        "type": "file",
+        "location": "emulator-account.pkey"
+      }
+    }
+  },
+  "deployments": {
+    "emulator": {
+      "emulator-account": [
+        "Counter",
+        "CounterTransactionHandler",
+        "CounterLoopTransactionHandler",
+        "CounterCronTransactionHandler"
+      ]
+    }
+  }
 }
