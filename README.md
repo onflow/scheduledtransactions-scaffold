@@ -1,4 +1,4 @@
-# 👋 Welcome to the Scheduled Transactions Scaffold
+# scheduledtransactions-scaffold — Forte Scheduled Transactions Starter for Flow
 
 This project is a starting point for you to test out Scheduled Transactions on the Flow Blockchain. It comes with example contracts, scripts, transactions, and tests to help you get started.
 
@@ -385,3 +385,11 @@ This command will start the Flow Emulator and deploy your project to it. You can
 - [Flow Community Forum](https://forum.flow.com/)
 - [Flow Discord](https://discord.gg/flow)
 - [Flow Twitter](https://x.com/flow_blockchain)
+## About Flow
+
+This repo is part of the [Flow network](https://flow.com), a Layer 1 blockchain built for consumer applications, AI agents, and DeFi at scale.
+
+- Developer docs: https://developers.flow.com
+- Cadence language: https://cadence-lang.org
+- Community: [Flow Discord](https://discord.gg/flow) · [Flow Forum](https://forum.flow.com)
+- Governance: [Flow Improvement Proposals](https://github.com/onflow/flips)
